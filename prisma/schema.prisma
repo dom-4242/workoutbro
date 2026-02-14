@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// A user of the application (trainer or athlete)
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(ATHLETE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  weightEntries WeightEntry[]
+}
+
+// User roles
+enum Role {
+  ATHLETE
+  TRAINER
+}
+
+// Daily weight measurement
+model WeightEntry {
+  id        String   @id @default(cuid())
+  weight    Float    // in kg
+  date      DateTime @default(now())
+  note      String?  // optional note
+  createdAt DateTime @default(now())
+
+  // Relation to user
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}

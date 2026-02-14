@@ -1,0 +1,18 @@
+# Local development database only
+# Run with: docker-compose -f docker-compose.dev.yml up -d
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: workoutbro
+      POSTGRES_USER: workoutbro
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_dev_data:
