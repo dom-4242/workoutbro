@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
+import WeightForm from "@/components/ui/WeightForm";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -63,6 +64,11 @@ export default async function DashboardPage() {
             <p className="text-gray-600 text-sm">More metrics coming soon...</p>
           </div>
 
+        </div>
+
+          {/* Weight Entry Form */}
+          <div className="mb-6 md:mb-8">
+            <WeightForm />
         </div>
 
         {/* Weight History */}
