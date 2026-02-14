@@ -1,0 +1,32 @@
+{
+  "common": {
+    "appName": "WorkoutBro",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Sign in",
+    "loginError": "Invalid email or password"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}!",
+    "weightTitle": "Weight",
+    "weightUnit": "kg",
+    "addWeight": "Log weight",
+    "todayWeight": "Today's weight"
+  },
+  "weight": {
+    "title": "Weight history",
+    "addEntry": "Add entry",
+    "date": "Date",
+    "weight": "Weight (kg)",
+    "note": "Note (optional)",
+    "saveEntry": "Save entry"
+  }
+}
