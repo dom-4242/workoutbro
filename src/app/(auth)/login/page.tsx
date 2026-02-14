@@ -33,8 +33,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="w-full max-w-md p-8 bg-gray-900 rounded-2xl border border-gray-800">
+    <main className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
+        <div className="w-full max-w-md p-6 md:p-8 bg-gray-900 rounded-2xl border border-gray-800">
 
         {/* Logo */}
         <div className="text-center mb-8">
