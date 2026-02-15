@@ -7,24 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// A user of the application (trainer or athlete)
+// Available roles in the system
+enum Role {
+  ATHLETE
+  TRAINER
+  ADMIN
+}
+
+// A user of the application
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
   password  String
-  role      Role     @default(ATHLETE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   // Relations
+  roles         UserRole[]
   weightEntries WeightEntry[]
 }
 
-// User roles
-enum Role {
-  ATHLETE
-  TRAINER
+// Join table for User <-> Role (a user can have multiple roles)
+model UserRole {
+  id        String   @id @default(cuid())
+  role      Role
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role]) // A user can't have the same role twice
 }
 
 // Daily weight measurement
@@ -35,7 +49,6 @@ model WeightEntry {
   note      String?  // optional note
   createdAt DateTime @default(now())
 
-  // Relation to user
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

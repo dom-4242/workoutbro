@@ -1,9 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
-
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -18,12 +16,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        // Find user in database
+        // Find user with roles
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
+          include: { roles: true },
         });
 
-        if (!user) return null;
+        if (!user || !user.isActive) return null;
 
         // Check password
         const passwordMatch = await bcrypt.compare(
@@ -37,30 +36,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          roles: user.roles.map((r) => r.role),
         };
       },
     }),
   ],
   callbacks: {
-    // Add role to the session token
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role;
         token.id = user.id;
+        token.roles = (user as any).roles;
       }
       return token;
     },
-    // Make role available in the session
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = token.role;
         (session.user as any).id = token.id;
+        (session.user as any).roles = token.roles;
       }
       return session;
     },
   },
   pages: {
-    signIn: "/login", // use our custom login page
+    signIn: "/login",
   },
 });

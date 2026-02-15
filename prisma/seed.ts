@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Hash passwords
   const hashedPassword = await bcrypt.hash("password123", 12);
   const trainerPassword = await bcrypt.hash("trainer123", 12);
 
@@ -16,7 +15,12 @@ async function main() {
       email: "dom@dom42.ch",
       name: "Dom",
       password: hashedPassword,
-      role: "ATHLETE",
+      roles: {
+        create: [
+          { role: "ATHLETE" },
+          { role: "ADMIN" },
+        ],
+      },
     },
   });
 
@@ -28,7 +32,11 @@ async function main() {
       email: "afonso@dom42.ch",
       name: "Afonso",
       password: trainerPassword,
-      role: "TRAINER",
+      roles: {
+        create: [
+          { role: "TRAINER" },
+        ],
+      },
     },
   });
 
