@@ -32,6 +32,7 @@ model User {
   // Other relations
   roles         UserRole[]
   weightEntries WeightEntry[]
+  createdExercises Exercise[] @relation("CreatedExercises")
 }
 
 // Join table for User <-> Role (a user can have multiple roles)
@@ -56,4 +57,46 @@ model WeightEntry {
 
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Exercise categories (predefined + custom allowed)
+enum ExerciseCategory {
+  CHEST
+  BACK
+  SHOULDERS
+  LEGS
+  ARMS
+  CORE
+  CARDIO
+  CUSTOM
+}
+
+// Available fields that can be configured per exercise
+enum ExerciseField {
+  WEIGHT      // kg
+  REPS        // count
+  DISTANCE    // meters
+  TIME        // seconds
+  RPE         // Rate of Perceived Exertion (1-10)
+  NOTES       // free text
+}
+
+// Exercise definition (created by admin)
+model Exercise {
+  id             String            @id @default(cuid())
+  name           String
+  category       ExerciseCategory
+  customCategory String?           // Only filled when category = CUSTOM
+  videoPath      String?           // Relative path, e.g., "/exercise-videos/bench-press.mp4"
+  
+  // Which fields are required when logging this exercise
+  requiredFields ExerciseField[]
+  
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  createdBy      String            // User ID of admin who created it
+  creator        User              @relation("CreatedExercises", fields: [createdBy], references: [id])
+  
+  @@index([category])
+  @@index([createdBy])
 }
