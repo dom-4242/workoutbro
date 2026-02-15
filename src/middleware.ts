@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const isLoginPage = req.nextUrl.pathname === "/login";
+  const isAdminPage = req.nextUrl.pathname.startsWith("/admin");
 
   // Redirect to login if not authenticated
   if (!isLoggedIn && !isLoginPage) {
@@ -15,10 +16,17 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
+  // Protect admin pages — only ADMIN role allowed
+  if (isAdminPage && isLoggedIn) {
+    const roles = (req.auth?.user as any)?.roles as string[] ?? [];
+    if (!roles.includes("ADMIN")) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+  }
+
   return NextResponse.next();
 });
 
 export const config = {
-  // Apply middleware to all routes except static files and API auth
   matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
 };
