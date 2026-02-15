@@ -51,9 +51,8 @@ export default function WeightForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-
-        {/* Date and Weight side by side on tablet+ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Date and Time and Weight */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm text-gray-400 mb-1">
               {t("date")}
@@ -62,6 +61,17 @@ export default function WeightForm() {
               type="date"
               name="date"
               defaultValue={today}
+              required
+              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors min-h-[44px]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Zeit</label>
+            <input
+              type="time"
+              name="time"
+              defaultValue={new Date().toTimeString().slice(0, 5)}
               required
               className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-emerald-500 transition-colors min-h-[44px]"
             />
@@ -104,7 +114,6 @@ export default function WeightForm() {
         >
           {loading ? "..." : t("saveEntry")}
         </button>
-
       </form>
     </div>
   );

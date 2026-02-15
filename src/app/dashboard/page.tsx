@@ -91,7 +91,11 @@ export default async function DashboardPage() {
                   className="flex justify-between items-center min-h-[44px] py-2 border-b border-gray-800 last:border-0"
                 >
                   <span className="text-gray-400 text-sm">
-                    {new Date(entry.date).toLocaleDateString("de-CH")}
+                    {new Date(entry.date).toLocaleDateString("de-CH")}{" "}
+                    {new Date(entry.date).toLocaleTimeString("de-CH", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                   <span className="font-medium">{entry.weight} kg</span>
                 </div>
