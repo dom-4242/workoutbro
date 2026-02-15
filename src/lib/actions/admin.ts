@@ -10,7 +10,7 @@ import { Role } from "@prisma/client";
 async function requireAdmin() {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
-  const roles = (session.user as any)?.roles as string[] ?? [];
+  const roles = ((session.user as any)?.roles as string[]) ?? [];
   if (!roles.includes("ADMIN")) throw new Error("Forbidden");
   return session;
 }
@@ -60,6 +60,24 @@ export async function toggleUserActive(userId: string, isActive: boolean) {
     where: { id: userId },
     data: { isActive: !isActive },
   });
+
+  revalidatePath("/admin/users");
+}
+
+export async function assignTrainer(
+  athleteId: string,
+  trainerId: string | null,
+) {
+  await requireAdmin();
+
+  console.log("assignTrainer called:", { athleteId, trainerId });
+
+  await prisma.user.update({
+    where: { id: athleteId },
+    data: { trainerId: trainerId },
+  });
+
+  console.log("assignTrainer success!");
 
   revalidatePath("/admin/users");
 }

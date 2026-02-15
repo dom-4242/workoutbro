@@ -24,7 +24,12 @@ model User {
   updatedAt DateTime @updatedAt
   isActive  Boolean  @default(true)
 
-  // Relations
+  // Trainer-Athlet relation
+  trainerId String?  // null = kein Trainer zugewiesen
+  trainer   User?    @relation("TrainerAthletes", fields: [trainerId], references: [id])
+  athletes  User[]   @relation("TrainerAthletes")
+
+  // Other relations
   roles         UserRole[]
   weightEntries WeightEntry[]
 }
