@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import WeightForm from "@/components/ui/WeightForm";
 import WeightChart from "@/components/ui/WeightChart";
+import LogoutButton from "@/components/ui/LogoutButton";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -21,7 +23,6 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-
       {/* Header */}
       <header className="border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <h1 className="text-lg md:text-xl font-bold">WorkoutBro 💪</h1>
@@ -29,19 +30,24 @@ export default async function DashboardPage() {
           <span className="text-gray-400 text-sm hidden sm:block">
             {session.user?.name}
           </span>
-          <form action="/api/auth/signout" method="POST">
-            <button
-              type="submit"
-              className="text-sm text-gray-400 hover:text-white transition-colors min-h-[44px] px-2"
+
+          {/* Admin Link — nur für ADMIN sichtbar */}
+          {(((session.user as any)?.roles as string[]) ?? []).includes(
+            "ADMIN",
+          ) && (
+            <Link
+              href="/admin/users"
+              className="text-xs font-mono text-yellow-400 border border-yellow-400/30 bg-yellow-400/10 px-2 py-1 rounded hover:bg-yellow-400/20 transition-colors min-h-[36px] flex items-center"
             >
-              Logout
-            </button>
-          </form>
+              ADMIN
+            </Link>
+          )}
+
+          <LogoutButton />
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
-
         {/* Welcome */}
         <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8">
           {t("welcome", { name: session.user?.name ?? "" })}
@@ -94,7 +100,6 @@ export default async function DashboardPage() {
           )}
         </div>
         {/* ↑ NUR DIESER BLOCK HAT SICH GEÄNDERT ↑ */}
-
       </div>
     </main>
   );

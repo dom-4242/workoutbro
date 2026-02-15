@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import LogoutButton from "@/components/ui/LogoutButton";
 
 export default async function AdminLayout({
   children,
@@ -25,9 +26,12 @@ export default async function AdminLayout({
           <span className="text-gray-600">|</span>
           <h1 className="text-lg font-bold">Admin</h1>
         </div>
-        <span className="text-xs font-mono text-emerald-400 border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 rounded">
-          ADMIN
-        </span>
+        <div className="flex items-center gap-3">
+          <LogoutButton />
+          <span className="text-xs font-mono text-emerald-400 border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 rounded">
+            ADMIN
+          </span>
+        </div>
       </header>
 
       {/* Admin Navigation */}
