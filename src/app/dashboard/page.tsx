@@ -13,13 +13,27 @@ export default async function DashboardPage() {
 
   const t = await getTranslations("dashboard");
 
-  const weightEntries = await prisma.weightEntry.findMany({
-    where: { userId: (session.user as any).id },
-    orderBy: { date: "desc" },
-    take: 7,
-  });
+  const roles = ((session.user as any)?.roles as string[]) ?? [];
+  const isTrainer = roles.includes("TRAINER");
+  const isOnlyTrainer = isTrainer && !roles.includes("ATHLETE");
+
+  const weightEntries = isOnlyTrainer
+    ? []
+    : await prisma.weightEntry.findMany({
+        where: { userId: (session.user as any).id },
+        orderBy: { date: "desc" },
+        take: 7,
+      });
 
   const latestWeight = weightEntries[0]?.weight ?? null;
+
+  // Load athletes if user is a trainer
+  const athletes = isTrainer
+    ? await prisma.user.findMany({
+        where: { trainerId: (session.user as any).id },
+        include: { roles: true },
+      })
+    : [];
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -32,9 +46,7 @@ export default async function DashboardPage() {
           </span>
 
           {/* Admin Link — nur für ADMIN sichtbar */}
-          {(((session.user as any)?.roles as string[]) ?? []).includes(
-            "ADMIN",
-          ) && (
+          {roles.includes("ADMIN") && (
             <Link
               href="/admin/users"
               className="text-xs font-mono text-yellow-400 border border-yellow-400/30 bg-yellow-400/10 px-2 py-1 rounded hover:bg-yellow-400/20 transition-colors min-h-[36px] flex items-center"
@@ -53,57 +65,81 @@ export default async function DashboardPage() {
           {t("welcome", { name: session.user?.name ?? "" })}
         </h2>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6">
-            <p className="text-gray-400 text-sm mb-1">{t("todayWeight")}</p>
-            <p className="text-3xl md:text-4xl font-bold text-emerald-400">
-              {latestWeight ? `${latestWeight} kg` : "—"}
-            </p>
-          </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6 flex items-center justify-center min-h-[100px]">
-            <p className="text-gray-600 text-sm">More metrics coming soon...</p>
-          </div>
-        </div>
-
-        {/* Weight Entry Form */}
-        <div className="mb-6 md:mb-8">
-          <WeightForm />
-        </div>
-
-        {/* ↓ NUR DIESER BLOCK HAT SICH GEÄNDERT ↓ */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6">
-          <h3 className="font-semibold mb-4">{t("weightTitle")}</h3>
-
-          {/* Chart — NEU */}
-          <div className="mb-6">
-            <WeightChart entries={weightEntries} />
-          </div>
-
-          {/* List — unverändert */}
-          {weightEntries.length === 0 ? (
-            <p className="text-gray-500 text-sm">Noch keine Einträge.</p>
-          ) : (
+        {/* Athletes List — only for trainers */}
+        {isTrainer && athletes.length > 0 && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6 mb-6 md:mb-8">
+            <h3 className="font-semibold mb-4">Meine Athleten</h3>
             <div className="space-y-1">
-              {weightEntries.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="flex justify-between items-center min-h-[44px] py-2 border-b border-gray-800 last:border-0"
+              {athletes.map((athlete) => (
+                <Link
+                  key={athlete.id}
+                  href={`/dashboard/athlete/${athlete.id}`}
+                  className="flex justify-between items-center min-h-[44px] py-2 px-3 border-b border-gray-800 last:border-0 hover:bg-gray-800 rounded-lg transition-colors"
                 >
-                  <span className="text-gray-400 text-sm">
-                    {new Date(entry.date).toLocaleDateString("de-CH")}{" "}
-                    {new Date(entry.date).toLocaleTimeString("de-CH", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                  <span className="font-medium">{entry.weight} kg</span>
-                </div>
+                  <span className="font-medium text-sm">{athlete.name}</span>
+                  <span className="text-gray-400 text-xs">→</span>
+                </Link>
               ))}
             </div>
-          )}
-        </div>
-        {/* ↑ NUR DIESER BLOCK HAT SICH GEÄNDERT ↑ */}
+          </div>
+        )}
+
+        {/* Stats Grid — nur für Athleten */}
+        {!isOnlyTrainer && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6">
+              <p className="text-gray-400 text-sm mb-1">{t("todayWeight")}</p>
+              <p className="text-3xl md:text-4xl font-bold text-emerald-400">
+                {latestWeight ? `${latestWeight} kg` : "—"}
+              </p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6 flex items-center justify-center min-h-[100px]">
+              <p className="text-gray-600 text-sm">
+                More metrics coming soon...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Weight Entry Form — nur für Athleten */}
+        {!isOnlyTrainer && (
+          <div className="mb-6 md:mb-8">
+            <WeightForm />
+          </div>
+        )}
+
+        {/* Weight History — nur für Athleten */}
+        {!isOnlyTrainer && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6">
+            <h3 className="font-semibold mb-4">{t("weightTitle")}</h3>
+
+            <div className="mb-6">
+              <WeightChart entries={weightEntries} />
+            </div>
+
+            {weightEntries.length === 0 ? (
+              <p className="text-gray-500 text-sm">Noch keine Einträge.</p>
+            ) : (
+              <div className="space-y-1">
+                {weightEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex justify-between items-center min-h-[44px] py-2 border-b border-gray-800 last:border-0"
+                  >
+                    <span className="text-gray-400 text-sm">
+                      {new Date(entry.date).toLocaleDateString("de-CH")}{" "}
+                      {new Date(entry.date).toLocaleTimeString("de-CH", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    <span className="font-medium">{entry.weight} kg</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );
