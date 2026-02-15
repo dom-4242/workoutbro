@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import CreateUserForm from "@/components/ui/CreateUserForm";
+import ToggleUserButton from "@/components/ui/ToggleUserButton";
 
 export default async function AdminUsersPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  // Load all users with their roles
   const users = await prisma.user.findMany({
     include: { roles: true },
     orderBy: { createdAt: "asc" },
@@ -19,30 +20,29 @@ export default async function AdminUsersPage() {
         <span className="text-sm text-gray-500">{users.length} Benutzer</span>
       </div>
 
+      {/* Create User Form */}
+      <CreateUserForm />
+
       {/* User Table */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
 
-        {/* Table Header */}
         <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-gray-800 text-xs font-mono text-gray-500 uppercase tracking-wider">
           <div className="col-span-4">Name / Email</div>
           <div className="col-span-3">Rollen</div>
           <div className="col-span-2">Status</div>
-          <div className="col-span-3">Erstellt</div>
+          <div className="col-span-3">Aktion</div>
         </div>
 
-        {/* Table Rows */}
         {users.map((user) => (
           <div
             key={user.id}
             className="grid grid-cols-12 gap-4 px-5 py-4 border-b border-gray-800 last:border-0 items-center hover:bg-gray-800/50 transition-colors"
           >
-            {/* Name & Email */}
             <div className="col-span-4">
               <p className="font-medium text-sm">{user.name}</p>
               <p className="text-gray-500 text-xs mt-0.5">{user.email}</p>
             </div>
 
-            {/* Roles */}
             <div className="col-span-3 flex flex-wrap gap-1">
               {user.roles.map((r) => (
                 <span
@@ -60,7 +60,6 @@ export default async function AdminUsersPage() {
               ))}
             </div>
 
-            {/* Status */}
             <div className="col-span-2">
               <span className={`text-xs font-mono px-2 py-0.5 rounded border ${
                 user.isActive
@@ -71,9 +70,8 @@ export default async function AdminUsersPage() {
               </span>
             </div>
 
-            {/* Created */}
-            <div className="col-span-3 text-gray-500 text-xs">
-              {new Date(user.createdAt).toLocaleDateString("de-CH")}
+            <div className="col-span-3">
+              <ToggleUserButton userId={user.id} isActive={user.isActive} />
             </div>
           </div>
         ))}
