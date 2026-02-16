@@ -43,6 +43,12 @@ export default async function AdminLayout({
           >
             Benutzerverwaltung
           </Link>
+          <Link
+            href="/admin/exercises"
+            className="px-4 py-3 text-sm text-gray-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-emerald-500"
+          >
+            Übungsverwaltung
+          </Link>
         </div>
       </nav>
 
