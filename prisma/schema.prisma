@@ -33,6 +33,10 @@ model User {
   roles         UserRole[]
   weightEntries WeightEntry[]
   createdExercises Exercise[] @relation("CreatedExercises")
+
+  // Training sessions
+  athleteSessions  TrainingSession[] @relation("AthletesSessions")
+  trainerSessions  TrainingSession[] @relation("TrainerSessions")
 }
 
 // Join table for User <-> Role (a user can have multiple roles)
@@ -97,6 +101,125 @@ model Exercise {
   createdBy      String            // User ID of admin who created it
   creator        User              @relation("CreatedExercises", fields: [createdBy], references: [id])
   
+  roundExercises RoundExercise[]  // NEU
+
   @@index([category])
   @@index([createdBy])
+}
+
+// ============================================
+// PHASE 3B: TRAINING SESSION MODELS
+// ============================================
+
+// Session status
+enum SessionStatus {
+  WAITING      // Athlete waiting for trainer
+  ACTIVE       // Trainer joined, session running
+  COMPLETED    // All rounds completed
+  CANCELLED    // Session cancelled
+}
+
+// Round status within session
+enum RoundStatus {
+  DRAFT        // Trainer planning, athlete can't see
+  RELEASED     // Released by trainer, athlete can start
+  ACTIVE       // Athlete currently executing
+  COMPLETED    // Athlete completed
+}
+
+// Athlete feedback on exercise difficulty
+enum ExerciseDifficulty {
+  TOO_EASY
+  JUST_RIGHT
+  TOO_HARD
+}
+
+// Body regions for pain reporting (simplified for quick input)
+enum BodyRegion {
+  NECK_SHOULDERS
+  CHEST
+  UPPER_BACK
+  LOWER_BACK
+  ABS
+  LEFT_ARM
+  RIGHT_ARM
+  LEFT_THIGH_FRONT
+  LEFT_THIGH_BACK
+  RIGHT_THIGH_FRONT
+  RIGHT_THIGH_BACK
+  LEFT_CALF
+  RIGHT_CALF
+  LEFT_KNEE
+  RIGHT_KNEE
+}
+
+// Training session between athlete and trainer
+model TrainingSession {
+  id          String        @id @default(cuid())
+  status      SessionStatus @default(WAITING)
+  
+  athleteId   String
+  athlete     User          @relation("AthletesSessions", fields: [athleteId], references: [id])
+  
+  trainerId   String?
+  trainer     User?         @relation("TrainerSessions", fields: [trainerId], references: [id])
+  
+  startedAt   DateTime      @default(now())
+  joinedAt    DateTime?     // When trainer joined
+  completedAt DateTime?
+  
+  rounds      SessionRound[]
+  
+  @@index([athleteId, status])
+  @@index([trainerId, status])
+}
+
+// Round within a training session
+model SessionRound {
+  id          String       @id @default(cuid())
+  roundNumber Int          // 1, 2, 3...
+  status      RoundStatus  @default(DRAFT)
+  
+  sessionId   String
+  session     TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  releasedAt  DateTime?    // When trainer released
+  completedAt DateTime?    // When athlete completed
+  
+  exercises   RoundExercise[]
+  
+  @@unique([sessionId, roundNumber])
+  @@index([sessionId, status])
+}
+
+// Exercise within a round (with planned values and feedback)
+model RoundExercise {
+  id         String  @id @default(cuid())
+  order      Int     // Order within round (1, 2, 3...)
+  
+  roundId    String
+  round      SessionRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  
+  // Planned values (set by trainer based on Exercise.requiredFields)
+  plannedWeight   Float?   // kg
+  plannedReps     Int?     // count
+  plannedDistance Float?   // meters
+  plannedTime     Int?     // seconds
+  plannedRPE      Int?     // 1-10
+  trainerNotes    String?  // Notes from trainer
+  
+  // Athlete feedback (filled after execution, MANDATORY)
+  difficulty      ExerciseDifficulty?
+  hadPain         Boolean           @default(false)
+  painRegions     BodyRegion[]      // Array of affected body regions
+  athleteNotes    String?           // Optional feedback from athlete
+  
+  completedAt     DateTime?
+  
+  @@unique([roundId, order])
+  @@index([roundId])
+  @@index([exerciseId])
 }
