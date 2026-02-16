@@ -2,6 +2,8 @@
 
 Personal health dashboard for sharing fitness data between athlete and trainer.
 
+> **⚠️ Disclaimer**: This is a personal **VIBE coding project** to explore modern web development and AI-assisted coding workflows. I am a **Product Owner**, not a senior web developer. This project is a learning journey using Claude (Anthropic) and Claude Code for implementation. The goal is to gain hands-on experience with full-stack development while building a real-world application. **100% transparency** — I'm learning as I build! 🚀
+
 ## 🎯 Vision
 
 A web application that enables real-time collaboration between athletes and trainers during workout sessions. Athletes track their progress, trainers guide workouts remotely, and both have full visibility into training history and metrics.
@@ -22,6 +24,7 @@ A web application that enables real-time collaboration between athletes and trai
 - [x] Admin panel for user management
 - [x] Trainer-athlete assignment system
 - [x] Trainer dashboard with athlete overview
+- [x] Testing infrastructure (Vitest + Playwright)
 
 ### Phase 2: Trainer Dashboard ✅
 
@@ -31,10 +34,16 @@ A web application that enables real-time collaboration between athletes and trai
 
 ### Phase 3: Exercise Management & Live Training 🚧
 
-- [ ] **3a**: Exercise library with custom fields
-- [ ] **3b**: Training session flow (without real-time)
-- [ ] **3c**: Real-time trainer-athlete collaboration (Pusher)
-- [ ] **3d**: Trainer notes and training history
+- [x] **3a**: Exercise library with custom fields and video upload ✅
+- [x] **3b**: Training session flow (without real-time) ✅ **(Currently in testing)**
+  - Session start by athlete
+  - Trainer joins and creates rounds
+  - Round-by-round workflow
+  - Exercise execution with video loops
+  - Athlete feedback (difficulty + pain regions via SVG body selector)
+  - Training history
+- [ ] **3c**: Real-time trainer-athlete collaboration (Pusher) 🔄
+- [ ] **3d**: Trainer notes and training history enhancements 🔄
 
 ### Future Phases
 
@@ -53,10 +62,11 @@ A web application that enables real-time collaboration between athletes and trai
 - Tailwind CSS
 - Recharts (data visualization)
 - next-intl (i18n)
+- SVG components (custom body region selector)
 
 **Backend:**
 
-- Next.js API Routes
+- Next.js API Routes & Server Actions
 - NextAuth.js v5 (authentication)
 - Prisma 6 (ORM)
 - PostgreSQL 16
@@ -65,6 +75,7 @@ A web application that enables real-time collaboration between athletes and trai
 
 - Vitest (unit tests)
 - Playwright (E2E tests)
+- 27 tests (13 unit + 14 E2E)
 
 **Deployment:**
 
@@ -151,13 +162,23 @@ workoutbro/
 │   ├── app/                    # Next.js pages & routing
 │   │   ├── (auth)/login/       # Authentication
 │   │   ├── dashboard/          # User dashboards
+│   │   │   └── session/        # Training sessions (Phase 3b)
 │   │   ├── admin/              # Admin panel
+│   │   │   ├── users/          # User management
+│   │   │   └── exercises/      # Exercise library
 │   │   └── api/                # API routes
 │   ├── components/
 │   │   ├── ui/                 # Reusable UI components
+│   │   │   ├── BodyRegionSelector.tsx    # SVG pain region selector
+│   │   │   ├── WeightChart.tsx           # Recharts weight chart
+│   │   │   └── Exercise*.tsx             # Exercise management
 │   │   └── layout/             # Layout components
 │   ├── lib/
 │   │   ├── actions/            # Server Actions
+│   │   │   ├── admin.ts        # Admin operations
+│   │   │   ├── exercise.ts     # Exercise CRUD
+│   │   │   ├── session.ts      # Training sessions
+│   │   │   └── weight.ts       # Weight tracking
 │   │   ├── auth.ts             # NextAuth config
 │   │   └── prisma.ts           # Prisma client
 │   ├── tests/
@@ -172,6 +193,8 @@ workoutbro/
 │   ├── de.json
 │   ├── pt.json
 │   └── en.json
+├── public/
+│   └── exercise-videos/        # Uploaded exercise videos
 └── docker-compose.dev.yml      # Local PostgreSQL
 ```
 
@@ -188,6 +211,11 @@ npm run test:e2e
 npm run test:e2e:ui
 ```
 
+**Current test coverage:**
+
+- 13 unit tests (weight validation, user validation)
+- 14 E2E tests (auth, admin access, weight tracking)
+
 ## 🗄 Database
 
 ```bash
@@ -201,13 +229,25 @@ npx prisma migrate dev --name your_migration_name
 npx prisma migrate reset
 ```
 
+**Current schema:**
+
+- User (with multi-role support)
+- UserRole (ATHLETE, TRAINER, ADMIN)
+- WeightEntry (with date/time)
+- Exercise (with custom fields + video)
+- TrainingSession (WAITING/ACTIVE/COMPLETED)
+- SessionRound (DRAFT/RELEASED/ACTIVE/COMPLETED)
+- RoundExercise (with planned values + athlete feedback)
+
 ## 🔐 Security
 
 - All routes protected by NextAuth middleware
 - Role-based access control (RBAC)
 - Server Actions with admin verification
+- Defense in depth (middleware + action-level checks)
 - Password hashing with bcryptjs (12 rounds)
 - Environment variables for secrets
+- Test credentials isolated in .env (never committed)
 
 ## 🌍 Internationalization
 
@@ -224,7 +264,7 @@ Translation files in `messages/` directory.
 Optimized for:
 
 - 📱 Mobile (iPhone/Android)
-- 📱 iPad (primary athlete device)
+- 📱 iPad (primary athlete device during training)
 - 💻 Desktop (primary trainer device)
 
 Tailwind breakpoints:
@@ -234,17 +274,30 @@ Tailwind breakpoints:
 - `lg:` 1024px+ (laptop)
 - `xl:` 1280px+ (desktop)
 
+Touch-friendly:
+
+- Minimum 44px tap targets
+- SVG body selector optimized for iPad touch input
+
 ## 🤝 Contributing
 
-This is a personal project, but feedback and suggestions are welcome via Issues.
+This is a personal learning project. Feedback and suggestions are welcome via Issues, but please understand this is primarily for educational purposes.
 
 ## 📝 Development Workflow
 
-1. **Feature planning**: Define requirements and user stories
-2. **Implementation**: Build features incrementally
-3. **Testing**: Write tests for new functionality
-4. **Review**: Test UI/UX and business logic
-5. **Commit**: Clear commit messages following conventional commits
+1. **Feature planning**: Define requirements and user stories (Product Owner role)
+2. **Specification**: Detailed briefing documents for AI-assisted implementation
+3. **Implementation**: Build features using Claude Code (AI pair programming)
+4. **Testing**: Manual testing + automated tests
+5. **Review**: UI/UX review and business logic validation
+6. **Commit**: Clear commit messages following conventional commits
+
+**AI-Assisted Development:**
+
+- Requirements and architecture defined with Claude (Anthropic)
+- Implementation executed with Claude Code
+- Product Owner review and iteration
+- Learning focus: understanding high-level architecture and business logic
 
 ## 📄 License
 
@@ -258,4 +311,5 @@ Private project - All rights reserved
 
 ---
 
-Built with ❤️ for effective athlete-trainer collaboration
+Built with ❤️ for effective athlete-trainer collaboration  
+_Powered by curiosity, Claude AI, and a lot of learning_ 🚀
