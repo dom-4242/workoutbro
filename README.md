@@ -32,26 +32,51 @@ A web application that enables real-time collaboration between athletes and trai
 - [x] Read-only access to athlete metrics
 - [x] Trainer-athlete relationship (1:n)
 
-### Phase 3: Exercise Management & Live Training 🚧
+### Phase 3: Exercise Management & Live Training ✅
 
-- [x] **3a**: Exercise library with custom fields and video upload ✅
-- [x] **3b**: Training session flow (without real-time) ✅ **(Currently in testing)**
-  - Session start by athlete
-  - Trainer joins and creates rounds
-  - Round-by-round workflow
-  - Exercise execution with video loops
-  - Athlete feedback (difficulty + pain regions via SVG body selector)
-  - Training history
+- [x] **3a**: Exercise library with custom fields and video upload
+  - Admin can create exercises with categories
+  - Configurable required fields (weight, reps, distance, time, RPE, notes)
+  - Video upload for exercise demonstrations (MP4/MOV)
+  - Custom categories supported
+- [x] **3b**: Training session flow (without real-time)
+  - Session lifecycle: WAITING → ACTIVE → COMPLETED
+  - Round-by-round workflow with DRAFT/RELEASED states
+  - Trainer plans and releases rounds sequentially
+  - Athlete executes exercises with video loop playback
+  - Mandatory feedback system:
+    - Difficulty rating (too easy/just right/too hard)
+    - Pain reporting via interactive SVG body selector (15 regions)
+    - Optional notes per exercise
+  - Session completion marking (final round indicator)
+  - Session cancellation for both parties
+  - Training history with completed sessions
+  - Session URL persistence across page refreshes
 - [ ] **3c**: Real-time trainer-athlete collaboration (Pusher) 🔄
-- [ ] **3d**: Trainer notes and training history enhancements 🔄
+- [ ] **3d**: Enhanced trainer notes and history 🔄
 
 ### Future Phases
 
+**Communication & Hardware:**
+
 - [ ] Video/Audio chat during live sessions (WebRTC evaluation)
 - [ ] Live heart rate monitoring via Bluetooth chest strap
+
+**Workout Management:**
+
+- [ ] Round templates: Trainer can save round configurations and reuse them
+- [ ] Pain intensity scale: Add 1-10 slider for each selected body region
+
+**User Management:**
+
 - [ ] Self-service user registration
 - [ ] OAuth integration (Google/Apple)
-- [ ] Advanced analytics and progress tracking
+
+**Analytics:**
+
+- [ ] Advanced progress tracking and analytics
+- [ ] Exercise performance trends over time
+- [ ] Pain pattern analysis
 
 ## 🛠 Tech Stack
 
@@ -62,7 +87,7 @@ A web application that enables real-time collaboration between athletes and trai
 - Tailwind CSS
 - Recharts (data visualization)
 - next-intl (i18n)
-- SVG components (custom body region selector)
+- Custom SVG components (body region selector)
 
 **Backend:**
 
@@ -171,6 +196,8 @@ workoutbro/
 │   │   ├── ui/                 # Reusable UI components
 │   │   │   ├── BodyRegionSelector.tsx    # SVG pain region selector
 │   │   │   ├── WeightChart.tsx           # Recharts weight chart
+│   │   │   ├── FeedbackForm.tsx          # Exercise feedback
+│   │   │   ├── RoundPlanner.tsx          # Round creation/editing
 │   │   │   └── Exercise*.tsx             # Exercise management
 │   │   └── layout/             # Layout components
 │   ├── lib/
@@ -235,8 +262,8 @@ npx prisma migrate reset
 - UserRole (ATHLETE, TRAINER, ADMIN)
 - WeightEntry (with date/time)
 - Exercise (with custom fields + video)
-- TrainingSession (WAITING/ACTIVE/COMPLETED)
-- SessionRound (DRAFT/RELEASED/ACTIVE/COMPLETED)
+- TrainingSession (WAITING/ACTIVE/COMPLETED/CANCELLED)
+- SessionRound (DRAFT/RELEASED/ACTIVE/COMPLETED + isFinalRound flag)
 - RoundExercise (with planned values + athlete feedback)
 
 ## 🔐 Security
@@ -278,6 +305,7 @@ Touch-friendly:
 
 - Minimum 44px tap targets
 - SVG body selector optimized for iPad touch input
+- Interactive body silhouette with 15 clickable regions
 
 ## 🤝 Contributing
 
