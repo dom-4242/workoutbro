@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import WeightForm from "@/components/ui/WeightForm";
 import WeightChart from "@/components/ui/WeightChart";
 import LogoutButton from "@/components/ui/LogoutButton";
+import SessionStartButton from "@/components/ui/SessionStartButton";
+import ActiveSessionsList from "@/components/ui/ActiveSessionsList";
+import { getTrainerActiveSessions } from "@/lib/actions/session";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -34,6 +37,52 @@ export default async function DashboardPage() {
         include: { roles: true },
       })
     : [];
+
+  // Load active sessions if user is a trainer
+  const activeSessions = isTrainer
+    ? await getTrainerActiveSessions()
+    : { waiting: [], active: [] };
+
+  // Check for active session as athlete
+  const activeAthleteSession = isOnlyTrainer
+    ? null
+    : await prisma.trainingSession.findFirst({
+        where: {
+          athleteId: (session.user as any).id,
+          status: { in: ["WAITING", "ACTIVE"] },
+        },
+        select: { id: true, status: true },
+      });
+
+  // Load completed sessions for athlete
+  const completedSessions = isOnlyTrainer
+    ? []
+    : await prisma.trainingSession.findMany({
+        where: {
+          athleteId: (session.user as any).id,
+          status: { in: ["COMPLETED", "CANCELLED"] },
+        },
+        select: {
+          id: true,
+          status: true,
+          startedAt: true,
+          completedAt: true,
+          rounds: { select: { id: true } },
+        },
+        orderBy: { startedAt: "desc" },
+        take: 5,
+      });
+
+  // Check for active session as trainer
+  const activeTrainerSession = isTrainer
+    ? await prisma.trainingSession.findFirst({
+        where: {
+          trainerId: (session.user as any).id,
+          status: "ACTIVE",
+        },
+        select: { id: true, athlete: { select: { name: true } } },
+      })
+    : null;
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -65,6 +114,27 @@ export default async function DashboardPage() {
           {t("welcome", { name: session.user?.name ?? "" })}
         </h2>
 
+        {/* Active Trainer Session Link */}
+        {isTrainer && activeTrainerSession && (
+          <div className="mb-6 md:mb-8">
+            <Link
+              href={`/dashboard/session/${activeTrainerSession.id}/trainer`}
+              className="block w-full min-h-[44px] bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 font-medium rounded-2xl transition-colors p-4 text-center"
+            >
+              Aktive Session mit {activeTrainerSession.athlete.name} fortsetzen
+              →
+            </Link>
+          </div>
+        )}
+
+        {/* Active Sessions — only for trainers */}
+        {isTrainer && (
+          <ActiveSessionsList
+            waitingSessions={activeSessions.waiting}
+            activeSessions={activeSessions.active}
+          />
+        )}
+
         {/* Athletes List — only for trainers */}
         {isTrainer && athletes.length > 0 && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6 mb-6 md:mb-8">
@@ -78,6 +148,59 @@ export default async function DashboardPage() {
                 >
                   <span className="font-medium text-sm">{athlete.name}</span>
                   <span className="text-gray-400 text-xs">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Active Session Link — nur für Athleten */}
+        {!isOnlyTrainer && activeAthleteSession && (
+          <div className="mb-6 md:mb-8">
+            <Link
+              href={`/dashboard/session/${activeAthleteSession.id}`}
+              className="block w-full min-h-[44px] bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 font-medium rounded-2xl transition-colors p-4 text-center"
+            >
+              Aktive Session fortsetzen →
+            </Link>
+          </div>
+        )}
+
+        {/* Session Start Button — nur für Athleten (hide if active session exists) */}
+        {!isOnlyTrainer && !activeAthleteSession && (
+          <div className="mb-6 md:mb-8">
+            <SessionStartButton />
+          </div>
+        )}
+
+        {/* Completed Sessions History — nur für Athleten */}
+        {!isOnlyTrainer && completedSessions.length > 0 && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6 mb-6 md:mb-8">
+            <h3 className="font-semibold mb-4">Letzte Sessions</h3>
+            <div className="space-y-2">
+              {completedSessions.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`/dashboard/session/${s.id}`}
+                  className="flex justify-between items-center min-h-[44px] py-2 px-3 border-b border-gray-800 last:border-0 hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">
+                      {new Date(s.startedAt).toLocaleDateString("de-CH")}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {s.rounds.length} Runde{s.rounds.length !== 1 ? "n" : ""}
+                    </span>
+                  </div>
+                  <span
+                    className={`px-2 py-1 border rounded text-xs font-medium ${
+                      s.status === "COMPLETED"
+                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                        : "bg-red-500/20 text-red-400 border-red-500/30"
+                    }`}
+                  >
+                    {s.status === "COMPLETED" ? "Abgeschlossen" : "Abgebrochen"}
+                  </span>
                 </Link>
               ))}
             </div>

@@ -177,8 +177,9 @@ model TrainingSession {
 // Round within a training session
 model SessionRound {
   id          String       @id @default(cuid())
-  roundNumber Int          // 1, 2, 3...
-  status      RoundStatus  @default(DRAFT)
+  roundNumber  Int          // 1, 2, 3...
+  status       RoundStatus  @default(DRAFT)
+  isFinalRound Boolean      @default(false)
   
   sessionId   String
   session     TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
