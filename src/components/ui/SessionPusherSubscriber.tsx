@@ -7,9 +7,10 @@ import { PUSHER_EVENTS, getSessionChannel } from "@/lib/pusher-events";
 
 type Props = {
   sessionId: string;
+  onUpdate?: () => void;
 };
 
-export function AthleteSubscriber({ sessionId }: Props) {
+export function AthleteSubscriber({ sessionId, onUpdate }: Props) {
   const router = useRouter();
 
   useEffect(() => {
@@ -22,17 +23,17 @@ export function AthleteSubscriber({ sessionId }: Props) {
 
     channel.bind(PUSHER_EVENTS.ROUND_RELEASED, () => {
       console.log("📥 ROUND_RELEASED received");
-      router.refresh();
+      onUpdate?.();
     });
 
     channel.bind(PUSHER_EVENTS.ROUND_UPDATED, () => {
       console.log("📥 ROUND_UPDATED received");
-      router.refresh();
+      onUpdate?.();
     });
 
     channel.bind(PUSHER_EVENTS.ROUND_DELETED, () => {
       console.log("📥 ROUND_DELETED received");
-      router.refresh();
+      onUpdate?.();
     });
 
     channel.bind(PUSHER_EVENTS.SESSION_CANCELLED, () => {
@@ -42,19 +43,19 @@ export function AthleteSubscriber({ sessionId }: Props) {
 
     channel.bind(PUSHER_EVENTS.SESSION_COMPLETED, () => {
       console.log("📥 SESSION_COMPLETED received");
-      router.refresh();
+      onUpdate?.();
     });
 
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [sessionId, router]);
+  }, [sessionId, router, onUpdate]);
 
   return null;
 }
 
-export function TrainerSubscriber({ sessionId }: Props) {
+export function TrainerSubscriber({ sessionId, onUpdate }: Props) {
   const router = useRouter();
 
   useEffect(() => {
@@ -67,12 +68,12 @@ export function TrainerSubscriber({ sessionId }: Props) {
 
     channel.bind(PUSHER_EVENTS.ROUND_COMPLETED, () => {
       console.log("📥 ROUND_COMPLETED received");
-      router.refresh();
+      onUpdate?.();
     });
 
     channel.bind(PUSHER_EVENTS.SESSION_COMPLETED, () => {
       console.log("📥 SESSION_COMPLETED received");
-      router.refresh();
+      onUpdate?.();
     });
 
     channel.bind(PUSHER_EVENTS.SESSION_CANCELLED, () => {
@@ -84,7 +85,7 @@ export function TrainerSubscriber({ sessionId }: Props) {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [sessionId, router]);
+  }, [sessionId, router, onUpdate]);
 
   return null;
 }

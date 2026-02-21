@@ -1,37 +1,71 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getAthleteSession } from "@/lib/actions/session";
+import { AthleteSubscriber } from "@/components/ui/SessionPusherSubscriber";
 import Link from "next/link";
 import WaitingForTrainer from "@/components/ui/WaitingForTrainer";
 import ActiveRoundView from "@/components/ui/ActiveRoundView";
 import CompletedRoundsHistory from "@/components/ui/CompletedRoundsHistory";
 import CancelSessionButton from "@/components/ui/CancelSessionButton";
-import { AthleteSubscriber } from "@/components/ui/SessionPusherSubscriber";
 
-type Props = {
-  params: Promise<{ id: string }>;
-};
+type SessionData = Awaited<ReturnType<typeof getAthleteSession>>;
 
-export default async function AthleteSessionPage({ params }: Props) {
-  const session = await auth();
-  if (!session) redirect("/login");
+export default function AthleteSessionPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const router = useRouter();
+  const [session, setSession] = useState<SessionData>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { id } = await params;
-  const trainingSession = await getAthleteSession(id);
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        const data = await getAthleteSession(params.id);
+        if (!data) {
+          router.push("/dashboard");
+          return;
+        }
+        setSession(data);
+      } catch (error) {
+        console.error("Error loading session:", error);
+        router.push("/dashboard");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSession();
+  }, [params.id, router]);
 
-  if (!trainingSession) {
-    redirect("/dashboard");
+  const reloadSession = async () => {
+    const data = await getAthleteSession(params.id);
+    setSession(data);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Lädt Session...</p>
+        </div>
+      </div>
+    );
   }
 
-  const { status, trainer, rounds } = trainingSession;
+  if (!session) return null;
 
-  // Separate rounds by status
+  const { status, trainer, rounds } = session;
   const activeRound = rounds.find((r) => r.status === "RELEASED");
   const completedRounds = rounds.filter((r) => r.status === "COMPLETED");
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      <AthleteSubscriber sessionId={id} />
+      <AthleteSubscriber sessionId={params.id} onUpdate={reloadSession} />
+
       {/* Header */}
       <header className="border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -64,7 +98,7 @@ export default async function AthleteSessionPage({ params }: Props) {
         {/* Cancel Button for active sessions */}
         {(status === "WAITING" || status === "ACTIVE") && (
           <div className="mb-6 flex justify-end">
-            <CancelSessionButton sessionId={id} />
+            <CancelSessionButton sessionId={params.id} />
           </div>
         )}
 
@@ -74,7 +108,6 @@ export default async function AthleteSessionPage({ params }: Props) {
         {/* Active State */}
         {status === "ACTIVE" && (
           <div className="space-y-8">
-            {/* Trainer Joined Message */}
             {trainer && (
               <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 text-center">
                 <p className="text-emerald-400 font-medium">
@@ -83,7 +116,6 @@ export default async function AthleteSessionPage({ params }: Props) {
               </div>
             )}
 
-            {/* Active Round */}
             {activeRound ? (
               <ActiveRoundView round={activeRound} />
             ) : (
@@ -93,10 +125,15 @@ export default async function AthleteSessionPage({ params }: Props) {
                     ? "Warte auf die nächste Runde vom Trainer..."
                     : "Warte auf die erste Runde vom Trainer..."}
                 </p>
+                <button
+                  onClick={reloadSession}
+                  className="text-emerald-400 hover:text-emerald-300 text-sm mt-2"
+                >
+                  Aktualisieren
+                </button>
               </div>
             )}
 
-            {/* Completed Rounds History */}
             {completedRounds.length > 0 && (
               <CompletedRoundsHistory rounds={completedRounds} />
             )}

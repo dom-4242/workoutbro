@@ -459,6 +459,15 @@ export async function getTrainerSession(sessionId: string) {
   });
 }
 
+// Query: Get available exercises
+export async function getAvailableExercises() {
+  await requireAuth();
+  return await prisma.exercise.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, requiredFields: true },
+  });
+}
+
 // Query: Get active sessions for trainer
 export async function getTrainerActiveSessions() {
   const session = await requireAuth();

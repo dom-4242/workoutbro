@@ -1,42 +1,76 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { getTrainerSession } from "@/lib/actions/session";
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  getTrainerSession,
+  getAvailableExercises,
+} from "@/lib/actions/session";
+import { TrainerSubscriber } from "@/components/ui/SessionPusherSubscriber";
 import Link from "next/link";
 import TrainerSessionView from "@/components/ui/TrainerSessionView";
 import CancelSessionButton from "@/components/ui/CancelSessionButton";
-import { TrainerSubscriber } from "@/components/ui/SessionPusherSubscriber";
 
-type Props = {
-  params: Promise<{ id: string }>;
-};
+type SessionData = Awaited<ReturnType<typeof getTrainerSession>>;
+type ExerciseData = Awaited<ReturnType<typeof getAvailableExercises>>;
 
-export default async function TrainerSessionPage({ params }: Props) {
-  const session = await auth();
-  if (!session) redirect("/login");
+export default function TrainerSessionPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const router = useRouter();
+  const [session, setSession] = useState<SessionData>(null);
+  const [exercises, setExercises] = useState<ExerciseData>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { id } = await params;
-  const trainingSession = await getTrainerSession(id);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [data, availableExercises] = await Promise.all([
+          getTrainerSession(params.id),
+          getAvailableExercises(),
+        ]);
+        if (!data) {
+          router.push("/dashboard");
+          return;
+        }
+        setSession(data);
+        setExercises(availableExercises);
+      } catch (error) {
+        console.error("Error loading session:", error);
+        router.push("/dashboard");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [params.id, router]);
 
-  if (!trainingSession) {
-    redirect("/dashboard");
+  const reloadSession = async () => {
+    const data = await getTrainerSession(params.id);
+    setSession(data);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Lädt Session...</p>
+        </div>
+      </div>
+    );
   }
 
-  // Get all available exercises
-  const availableExercises = await prisma.exercise.findMany({
-    orderBy: { name: "asc" },
-    select: {
-      id: true,
-      name: true,
-      requiredFields: true,
-    },
-  });
+  if (!session) return null;
 
-  const { status, athlete, rounds, startedAt, joinedAt } = trainingSession;
+  const { status, athlete, rounds, startedAt, joinedAt } = session;
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      <TrainerSubscriber sessionId={id} />
+      <TrainerSubscriber sessionId={params.id} onUpdate={reloadSession} />
+
       {/* Header */}
       <header className="border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -69,7 +103,7 @@ export default async function TrainerSessionPage({ params }: Props) {
         {/* Cancel Button for active sessions */}
         {(status === "WAITING" || status === "ACTIVE") && (
           <div className="mb-6 flex justify-end">
-            <CancelSessionButton sessionId={id} />
+            <CancelSessionButton sessionId={params.id} />
           </div>
         )}
 
@@ -88,12 +122,12 @@ export default async function TrainerSessionPage({ params }: Props) {
         {/* Active State */}
         {status === "ACTIVE" && (
           <TrainerSessionView
-            sessionId={id}
+            sessionId={params.id}
             athleteName={athlete.name}
             startedAt={startedAt}
             joinedAt={joinedAt}
             rounds={rounds}
-            availableExercises={availableExercises}
+            availableExercises={exercises}
           />
         )}
 
