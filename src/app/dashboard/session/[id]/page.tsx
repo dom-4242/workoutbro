@@ -6,6 +6,7 @@ import WaitingForTrainer from "@/components/ui/WaitingForTrainer";
 import ActiveRoundView from "@/components/ui/ActiveRoundView";
 import CompletedRoundsHistory from "@/components/ui/CompletedRoundsHistory";
 import CancelSessionButton from "@/components/ui/CancelSessionButton";
+import { AthleteSubscriber } from "@/components/ui/SessionPusherSubscriber";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -30,6 +31,7 @@ export default async function AthleteSessionPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
+      <AthleteSubscriber sessionId={id} />
       {/* Header */}
       <header className="border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">

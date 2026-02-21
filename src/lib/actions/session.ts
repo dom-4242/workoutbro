@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { SessionStatus, RoundStatus, ExerciseDifficulty, BodyRegion } from "@prisma/client";
+import { pusherServer } from "@/lib/pusher";
+import { PUSHER_EVENTS, getSessionChannel } from "@/lib/pusher-events";
 
 // Helper: Require auth
 async function requireAuth() {
@@ -117,6 +119,13 @@ export async function completeRound(data: {
     },
   });
 
+  // Notify trainer that round was completed
+  await pusherServer.trigger(
+    getSessionChannel(round.sessionId),
+    PUSHER_EVENTS.ROUND_COMPLETED,
+    { roundId: data.roundId, roundNumber: round.roundNumber },
+  );
+
   // Check if this was the final round → complete session
   if (round.isFinalRound) {
     await prisma.trainingSession.update({
@@ -126,6 +135,13 @@ export async function completeRound(data: {
         completedAt: new Date(),
       },
     });
+
+    await pusherServer.trigger(
+      getSessionChannel(round.sessionId),
+      PUSHER_EVENTS.SESSION_COMPLETED,
+      {},
+    );
+
     revalidatePath("/dashboard");
   }
 
@@ -207,7 +223,7 @@ export async function saveRound(data: {
 
   if (data.roundId) {
     // Update existing round
-    await prisma.sessionRound.update({
+    const updatedRound = await prisma.sessionRound.update({
       where: { id: data.roundId },
       data: {
         isFinalRound: data.isFinalRound ?? false,
@@ -218,6 +234,15 @@ export async function saveRound(data: {
       },
     });
     roundId = data.roundId;
+
+    // Notify athlete if a released round was updated
+    if (updatedRound.status === "RELEASED") {
+      await pusherServer.trigger(
+        getSessionChannel(data.sessionId),
+        PUSHER_EVENTS.ROUND_UPDATED,
+        { roundId: data.roundId, roundNumber: updatedRound.roundNumber },
+      );
+    }
   } else {
     // Create new round
     const maxRound = await prisma.sessionRound.findFirst({
@@ -287,6 +312,13 @@ export async function releaseRound(roundId: string) {
     },
   });
 
+  // Notify athlete that round was released
+  await pusherServer.trigger(
+    getSessionChannel(round.sessionId),
+    PUSHER_EVENTS.ROUND_RELEASED,
+    { roundId, roundNumber: round.roundNumber },
+  );
+
   revalidatePath(`/dashboard/session/${round.sessionId}/trainer`);
   revalidatePath(`/dashboard/session/${round.sessionId}`);
 }
@@ -323,6 +355,13 @@ export async function deleteRound(roundId: string) {
     where: { id: roundId },
   });
 
+  // Notify athlete that round was deleted
+  await pusherServer.trigger(
+    getSessionChannel(round.sessionId),
+    PUSHER_EVENTS.ROUND_DELETED,
+    { roundId, roundNumber: round.roundNumber },
+  );
+
   revalidatePath(`/dashboard/session/${round.sessionId}/trainer`);
 }
 
@@ -348,6 +387,16 @@ export async function cancelSession(sessionId: string) {
     where: { id: sessionId },
     data: { status: "CANCELLED" },
   });
+
+  // Notify other party that session was cancelled
+  const cancelledBy =
+    trainingSession.athleteId === userId ? "ATHLETE" : "TRAINER";
+
+  await pusherServer.trigger(
+    getSessionChannel(sessionId),
+    PUSHER_EVENTS.SESSION_CANCELLED,
+    { cancelledBy },
+  );
 
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/session/${sessionId}`);

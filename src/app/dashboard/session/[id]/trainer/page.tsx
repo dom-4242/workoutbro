@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import TrainerSessionView from "@/components/ui/TrainerSessionView";
 import CancelSessionButton from "@/components/ui/CancelSessionButton";
+import { TrainerSubscriber } from "@/components/ui/SessionPusherSubscriber";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -35,6 +36,7 @@ export default async function TrainerSessionPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
+      <TrainerSubscriber sessionId={id} />
       {/* Header */}
       <header className="border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
