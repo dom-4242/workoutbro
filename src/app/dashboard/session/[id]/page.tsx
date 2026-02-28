@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { getAthleteSession } from "@/lib/actions/session";
 import { AthleteSubscriber } from "@/components/ui/SessionPusherSubscriber";
 import Link from "next/link";
@@ -15,8 +16,9 @@ type SessionData = Awaited<ReturnType<typeof getAthleteSession>>;
 export default function AthleteSessionPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
   const [session, setSession] = useState<SessionData>(null);
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export default function AthleteSessionPage({
   useEffect(() => {
     async function loadSession() {
       try {
-        const data = await getAthleteSession(params.id);
+        const data = await getAthleteSession(id);
         if (!data) {
           router.push("/dashboard");
           return;
@@ -38,12 +40,7 @@ export default function AthleteSessionPage({
       }
     }
     loadSession();
-  }, [params.id, router]);
-
-  const reloadSession = async () => {
-    const data = await getAthleteSession(params.id);
-    setSession(data);
-  };
+  }, [id, router]);
 
   if (loading) {
     return (
@@ -64,7 +61,7 @@ export default function AthleteSessionPage({
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      <AthleteSubscriber sessionId={params.id} onUpdate={reloadSession} />
+      <AthleteSubscriber sessionId={id} />
 
       {/* Header */}
       <header className="border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
@@ -98,7 +95,7 @@ export default function AthleteSessionPage({
         {/* Cancel Button for active sessions */}
         {(status === "WAITING" || status === "ACTIVE") && (
           <div className="mb-6 flex justify-end">
-            <CancelSessionButton sessionId={params.id} />
+            <CancelSessionButton sessionId={id} />
           </div>
         )}
 
@@ -126,7 +123,7 @@ export default function AthleteSessionPage({
                     : "Warte auf die erste Runde vom Trainer..."}
                 </p>
                 <button
-                  onClick={reloadSession}
+                  onClick={() => router.refresh()}
                   className="text-emerald-400 hover:text-emerald-300 text-sm mt-2"
                 >
                   Aktualisieren

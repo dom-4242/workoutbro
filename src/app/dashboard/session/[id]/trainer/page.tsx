@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   getTrainerSession,
@@ -17,8 +17,9 @@ type ExerciseData = Awaited<ReturnType<typeof getAvailableExercises>>;
 export default function TrainerSessionPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const router = useRouter();
   const [session, setSession] = useState<SessionData>(null);
   const [exercises, setExercises] = useState<ExerciseData>([]);
@@ -28,7 +29,7 @@ export default function TrainerSessionPage({
     async function loadData() {
       try {
         const [data, availableExercises] = await Promise.all([
-          getTrainerSession(params.id),
+          getTrainerSession(id),
           getAvailableExercises(),
         ]);
         if (!data) {
@@ -45,12 +46,7 @@ export default function TrainerSessionPage({
       }
     }
     loadData();
-  }, [params.id, router]);
-
-  const reloadSession = async () => {
-    const data = await getTrainerSession(params.id);
-    setSession(data);
-  };
+  }, [id, router]);
 
   if (loading) {
     return (
@@ -69,7 +65,7 @@ export default function TrainerSessionPage({
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      <TrainerSubscriber sessionId={params.id} onUpdate={reloadSession} />
+      <TrainerSubscriber sessionId={id} />
 
       {/* Header */}
       <header className="border-b border-gray-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
@@ -103,7 +99,7 @@ export default function TrainerSessionPage({
         {/* Cancel Button for active sessions */}
         {(status === "WAITING" || status === "ACTIVE") && (
           <div className="mb-6 flex justify-end">
-            <CancelSessionButton sessionId={params.id} />
+            <CancelSessionButton sessionId={id} />
           </div>
         )}
 
@@ -122,7 +118,7 @@ export default function TrainerSessionPage({
         {/* Active State */}
         {status === "ACTIVE" && (
           <TrainerSessionView
-            sessionId={params.id}
+            sessionId={id}
             athleteName={athlete.name}
             startedAt={startedAt}
             joinedAt={joinedAt}

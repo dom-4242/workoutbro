@@ -45,3 +45,4 @@ next-env.d.ts
 # exercise videos (keep directory with .gitkeep)
 /public/exercise-videos/*
 !/public/exercise-videos/.gitkeep
+docs/briefings/

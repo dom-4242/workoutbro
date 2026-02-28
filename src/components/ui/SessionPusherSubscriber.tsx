@@ -7,33 +7,33 @@ import { PUSHER_EVENTS, getSessionChannel } from "@/lib/pusher-events";
 
 type Props = {
   sessionId: string;
-  onUpdate?: () => void;
 };
 
-export function AthleteSubscriber({ sessionId, onUpdate }: Props) {
+export function AthleteSubscriber({ sessionId }: Props) {
   const router = useRouter();
 
   useEffect(() => {
     console.log("🚀 ATHLETE SUBSCRIBER MOUNTED for session:", sessionId);
     const channel = pusherClient.subscribe(getSessionChannel(sessionId));
-    console.log(
-      "📡 Athlete subscribed to channel:",
-      getSessionChannel(sessionId),
-    );
 
     channel.bind(PUSHER_EVENTS.ROUND_RELEASED, () => {
       console.log("📥 ROUND_RELEASED received");
-      onUpdate?.();
+      setTimeout(() => window.location.reload(), 300);
     });
 
     channel.bind(PUSHER_EVENTS.ROUND_UPDATED, () => {
       console.log("📥 ROUND_UPDATED received");
-      onUpdate?.();
+      setTimeout(() => window.location.reload(), 300);
     });
 
     channel.bind(PUSHER_EVENTS.ROUND_DELETED, () => {
       console.log("📥 ROUND_DELETED received");
-      onUpdate?.();
+      setTimeout(() => window.location.reload(), 300);
+    });
+
+    channel.bind(PUSHER_EVENTS.ROUND_COMPLETED, () => {
+      console.log("📥 ROUND_COMPLETED received (Athlete)");
+      setTimeout(() => window.location.reload(), 300);
     });
 
     channel.bind(PUSHER_EVENTS.SESSION_CANCELLED, () => {
@@ -43,37 +43,43 @@ export function AthleteSubscriber({ sessionId, onUpdate }: Props) {
 
     channel.bind(PUSHER_EVENTS.SESSION_COMPLETED, () => {
       console.log("📥 SESSION_COMPLETED received");
-      onUpdate?.();
+      setTimeout(() => window.location.reload(), 300);
     });
 
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [sessionId, router, onUpdate]);
+  }, [sessionId, router]);
 
   return null;
 }
 
-export function TrainerSubscriber({ sessionId, onUpdate }: Props) {
+export function TrainerSubscriber({ sessionId }: Props) {
   const router = useRouter();
 
   useEffect(() => {
     console.log("🚀 TRAINER SUBSCRIBER MOUNTED for session:", sessionId);
     const channel = pusherClient.subscribe(getSessionChannel(sessionId));
-    console.log(
-      "📡 Trainer subscribed to channel:",
-      getSessionChannel(sessionId),
-    );
+
+    channel.bind(PUSHER_EVENTS.ROUND_RELEASED, () => {
+      console.log("📥 ROUND_RELEASED received (Trainer)");
+      setTimeout(() => window.location.reload(), 300);
+    });
+
+    channel.bind(PUSHER_EVENTS.ROUND_UPDATED, () => {
+      console.log("📥 ROUND_UPDATED received");
+      setTimeout(() => window.location.reload(), 300);
+    });
 
     channel.bind(PUSHER_EVENTS.ROUND_COMPLETED, () => {
       console.log("📥 ROUND_COMPLETED received");
-      onUpdate?.();
+      setTimeout(() => window.location.reload(), 300);
     });
 
     channel.bind(PUSHER_EVENTS.SESSION_COMPLETED, () => {
       console.log("📥 SESSION_COMPLETED received");
-      onUpdate?.();
+      setTimeout(() => window.location.reload(), 300);
     });
 
     channel.bind(PUSHER_EVENTS.SESSION_CANCELLED, () => {
@@ -81,11 +87,16 @@ export function TrainerSubscriber({ sessionId, onUpdate }: Props) {
       router.push("/dashboard");
     });
 
+    channel.bind("round-saved", () => {
+      console.log("📥 ROUND_SAVED received (DRAFT)");
+      setTimeout(() => window.location.reload(), 300);
+    });
+
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [sessionId, router, onUpdate]);
+  }, [sessionId, router]);
 
   return null;
 }
