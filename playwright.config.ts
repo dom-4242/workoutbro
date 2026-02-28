@@ -5,10 +5,15 @@ dotenv.config();
 
 export default defineConfig({
   testDir: "./src/tests/e2e",
-  fullyParallel: true,
+  globalSetup: require.resolve("./src/tests/global-setup.ts"),
+  fullyParallel: false, // Session tests must run sequentially
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
+  timeout: 30000,
+  expect: {
+    timeout: 10000,
+  },
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",

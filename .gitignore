@@ -47,3 +47,7 @@ next-env.d.ts
 !/public/exercise-videos/.gitkeep
 docs/briefings/
 docs/briefings/
+after-login.png
+playwright-report/
+test-results/
+docs/briefings/
