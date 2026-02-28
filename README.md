@@ -52,7 +52,13 @@ A web application that enables real-time collaboration between athletes and trai
   - Session cancellation for both parties
   - Training history with completed sessions
   - Session URL persistence across page refreshes
-- [ ] **3c**: Real-time trainer-athlete collaboration (Pusher) 🔄
+- [x] **3c**: Real-time trainer-athlete collaboration ✅ **NEW**
+  - Pusher Channels integration for instant updates
+  - Automatic page updates without manual refresh (~1.1s delay)
+  - Events: Round saved, released, completed, deleted, session completed/cancelled
+  - Bidirectional real-time sync (Trainer ↔ Athlete)
+  - Optimized delays for production (800ms server + 300ms client)
+  - Works in both development and production builds
 - [ ] **3d**: Enhanced trainer notes and history 🔄
 
 ### Future Phases
@@ -87,6 +93,7 @@ A web application that enables real-time collaboration between athletes and trai
 - Tailwind CSS
 - Recharts (data visualization)
 - next-intl (i18n)
+- Pusher Channels (real-time events)
 - Custom SVG components (body region selector)
 
 **Backend:**
@@ -111,7 +118,11 @@ A web application that enables real-time collaboration between athletes and trai
 
 ### Real-time Communication
 
-- **Pusher/Ably**: Live workout session updates between trainer and athlete
+- **Pusher Channels** ✅: Live workout session updates between trainer and athlete
+  - Instant round release notifications
+  - Automatic UI updates when rounds are saved/completed
+  - Session state synchronization
+  - Free tier: 100 concurrent connections, 200k messages/day
 - **WebRTC** (evaluation phase): Video/audio chat during sessions
 
 ### Hardware Integration
@@ -172,6 +183,35 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+### Environment Variables
+
+Required environment variables in `.env`:
+
+**Database:**
+
+```bash
+DATABASE_URL="postgresql://user:password@localhost:5432/workoutbro"
+```
+
+**Authentication (NextAuth.js v5):**
+
+```bash
+AUTH_SECRET="your-secret-key-here"
+AUTH_TRUST_HOST=true  # Required for production
+```
+
+**Pusher (Real-time Updates):**
+
+```bash
+# Get these from https://dashboard.pusher.com
+NEXT_PUBLIC_PUSHER_KEY="your-pusher-key"
+NEXT_PUBLIC_PUSHER_CLUSTER="eu"  # or your cluster
+PUSHER_APP_ID="your-app-id"
+PUSHER_SECRET="your-pusher-secret"
+```
+
+See `.env.example` for full template.
+
 ### Test Credentials
 
 After seeding, you can login with:
@@ -198,6 +238,7 @@ workoutbro/
 │   │   │   ├── WeightChart.tsx           # Recharts weight chart
 │   │   │   ├── FeedbackForm.tsx          # Exercise feedback
 │   │   │   ├── RoundPlanner.tsx          # Round creation/editing
+│   │   │   ├── SessionPusherSubscriber.tsx # Real-time events
 │   │   │   └── Exercise*.tsx             # Exercise management
 │   │   └── layout/             # Layout components
 │   ├── lib/
@@ -206,6 +247,9 @@ workoutbro/
 │   │   │   ├── exercise.ts     # Exercise CRUD
 │   │   │   ├── session.ts      # Training sessions
 │   │   │   └── weight.ts       # Weight tracking
+│   │   ├── pusher.ts           # Pusher server instance
+│   │   ├── pusher-client.ts    # Pusher client instance
+│   │   ├── pusher-events.ts    # Event constants & types
 │   │   ├── auth.ts             # NextAuth config
 │   │   └── prisma.ts           # Prisma client
 │   ├── tests/
@@ -265,6 +309,11 @@ npx prisma migrate reset
 - TrainingSession (WAITING/ACTIVE/COMPLETED/CANCELLED)
 - SessionRound (DRAFT/RELEASED/ACTIVE/COMPLETED + isFinalRound flag)
 - RoundExercise (with planned values + athlete feedback)
+
+**Real-time events (Pusher):**
+
+- Channel pattern: `session-{sessionId}`
+- Events: ROUND_RELEASED, ROUND_UPDATED, ROUND_SAVED, ROUND_COMPLETED, ROUND_DELETED, SESSION_COMPLETED, SESSION_CANCELLED
 
 ## 🔐 Security
 
