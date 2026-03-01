@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: "./src/tests/e2e",
   globalSetup: require.resolve("./src/tests/global-setup.ts"),
   fullyParallel: false, // Session tests must run sequentially
+  workers: 1, // Force sequential execution with single worker
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: "html",

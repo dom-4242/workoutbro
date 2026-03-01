@@ -36,27 +36,35 @@ async function main() {
     },
   });
 
+  // Delete existing test exercises first
+  await prisma.exercise.deleteMany({
+    where: {
+      name: {
+        in: ["Test Exercise 1", "Test Exercise 2"],
+      },
+    },
+  });
+
   // Create test exercises
-  const exercise1 = await prisma.exercise.upsert({
-    where: { name: "Test Exercise 1" },
-    update: {},
-    create: {
+  const exercise1 = await prisma.exercise.create({
+    data: {
       name: "Test Exercise 1",
-      category: "Kraft",
+      category: "LEGS",
       requiredFields: ["WEIGHT", "REPS", "RPE", "NOTES"],
+      createdBy: trainer.id,
     },
   });
 
-  const exercise2 = await prisma.exercise.upsert({
-    where: { name: "Test Exercise 2" },
-    update: {},
-    create: {
+  const exercise2 = await prisma.exercise.create({
+    data: {
       name: "Test Exercise 2",
-      category: "Ausdauer",
+      category: "CARDIO",
       requiredFields: ["DISTANCE", "TIME", "RPE"],
+      createdBy: trainer.id,
     },
   });
 
+  console.log("✅ Created test exercises");
   console.log("✅ Seeded:", { athlete, trainer, exercise1, exercise2 });
 }
 

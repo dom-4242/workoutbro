@@ -8,6 +8,13 @@ import {
   ATHLETE_EMAIL,
   ATHLETE_PASSWORD,
 } from "../helpers/session-helpers";
+import { prisma } from "@/lib/prisma";
+
+test.beforeEach(async () => {
+  await prisma.roundExercise.deleteMany();
+  await prisma.sessionRound.deleteMany();
+  await prisma.trainingSession.deleteMany();
+});
 
 const ADMIN_EMAIL = "dom@dom42.ch"; // athlete also has ADMIN role
 const ADMIN_PASSWORD = "password123";
@@ -17,19 +24,18 @@ test("admin can create a complete exercise", async ({ page }) => {
   await loginAs(page, ADMIN_EMAIL, ADMIN_PASSWORD);
   await page.goto("/admin/exercises");
 
-  await page.getByRole("button", { name: /Neue Übung|Übung erstellen/i }).click();
+  await page
+    .getByRole("button", { name: /Neue Übung|Übung erstellen/i })
+    .first()
+    .click();
 
-  await page.getByLabel(/Name/i).fill("E2E Test Exercise");
-  await page.getByLabel(/Kategorie/i).fill("Kraft");
+  await page.getByPlaceholder("z.B. Bench Press").fill("E2E Test Exercise");
 
-  // Check all required fields
-  const checkboxLabels = ["Gewicht", "Wiederholungen", "Distanz", "Zeit", "RPE", "Notizen"];
-  for (const label of checkboxLabels) {
-    const checkbox = page.getByLabel(new RegExp(label, "i"));
-    if (await checkbox.isVisible({ timeout: 1000 })) {
-      await checkbox.check();
-    }
-  }
+  // Check required fields before saving
+  await page.getByRole("checkbox", { name: /Gewicht/i }).check();
+  await page.getByRole("checkbox", { name: /Wiederholungen/i }).check();
+  await page.getByRole("checkbox", { name: /RPE/i }).check();
+  await page.getByRole("checkbox", { name: /Notizen/i }).check();
 
   await page.getByRole("button", { name: /Speichern/i }).click();
 
@@ -48,8 +54,12 @@ test("admin can upload exercise video", async ({ page }) => {
   if (await existingExercise.isVisible({ timeout: 2000 })) {
     await existingExercise.click();
   } else {
-    await page.getByRole("button", { name: /Neue Übung|Übung erstellen/i }).click();
-    await page.getByLabel(/Name/i).fill("Video Test Exercise");
+    await page
+      .getByRole("button", { name: /Neue Übung|Übung erstellen/i })
+      .first()
+      .click();
+    await page.getByPlaceholder("z.B. Bench Press").fill("Video Test Exercise");
+    await page.getByRole("checkbox", { name: /Gewicht/i }).check();
     await page.getByRole("button", { name: /Speichern/i }).click();
     await page.getByText("Video Test Exercise").click();
   }

@@ -5,6 +5,13 @@ import {
   releaseDraftRound,
   PUSHER_DELAY,
 } from "../helpers/session-helpers";
+import { prisma } from "@/lib/prisma";
+
+test.beforeEach(async () => {
+  await prisma.roundExercise.deleteMany();
+  await prisma.sessionRound.deleteMany();
+  await prisma.trainingSession.deleteMany();
+});
 
 // Helper: Set up an active session with a released round
 async function setupReleasedRound(browser: import("@playwright/test").Browser) {

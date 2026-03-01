@@ -8,6 +8,13 @@ import {
   releaseDraftRound,
   PUSHER_DELAY,
 } from "../helpers/session-helpers";
+import { prisma } from "@/lib/prisma";
+
+test.beforeEach(async () => {
+  await prisma.roundExercise.deleteMany();
+  await prisma.sessionRound.deleteMany();
+  await prisma.trainingSession.deleteMany();
+});
 
 // ─── Test 1: Athlete starts session → WAITING state ──────────────────────────
 test("athlete can start new session", async ({ page }) => {
