@@ -58,15 +58,23 @@ export async function joinSessionAsTrainer(page: Page): Promise<string> {
 export async function createDraftRound(
   page: Page,
   exerciseNames: string[],
+  isFinalRound = false,
 ): Promise<void> {
   await page.getByRole("button", { name: /\+ Runde|Neue Runde/i }).click();
 
   for (const name of exerciseNames) {
-    await page.getByRole("combobox").last().selectOption({ label: name });
     await page.getByRole("button", { name: /Übung hinzufügen/i }).click();
+    await page.getByRole("combobox").last().selectOption({ label: name });
   }
 
-  await page.getByRole("button", { name: /Änderungen speichern/i }).click();
+  if (isFinalRound) {
+    const finalCheckbox = page.getByLabel(/letzte Runde|Final/i);
+    if (await finalCheckbox.isVisible({ timeout: 2000 })) {
+      await finalCheckbox.check();
+    }
+  }
+
+  await page.getByRole("button", { name: /speichern/i }).click();
   // Wait for Pusher round-saved event + reload
   await page.waitForTimeout(PUSHER_DELAY);
 }
@@ -74,8 +82,18 @@ export async function createDraftRound(
 /**
  * Releases the first DRAFT round.
  * Page must be on the trainer session page.
+ *
+ * NOTE: After createDraftRound(), the Pusher "round-saved" event triggers
+ * window.location.reload() in TrainerSubscriber, which resets React state
+ * (selectedRoundId → null). We must click the round card first to re-select
+ * it before the "Runde freigeben" button becomes visible.
  */
 export async function releaseDraftRound(page: Page): Promise<void> {
+  // Click the "Entwurf" badge in the round card to select it in the RoundPlanner
+  await page.getByText("Entwurf").first().click();
+  // Wait for RoundPlanner to render with the selected round
+  await page.waitForTimeout(500);
+
   await page
     .getByRole("button", { name: /Runde freigeben/i })
     .first()

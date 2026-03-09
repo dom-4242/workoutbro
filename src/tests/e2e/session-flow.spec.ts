@@ -60,17 +60,9 @@ test("trainer can create draft round", async ({ browser }) => {
   const trainerPage = await trainerCtx.newPage();
   await joinSessionAsTrainer(trainerPage);
 
-  await trainerPage
-    .getByRole("button", { name: /\+ Runde|Neue Runde/i })
-    .click();
-  await expect(trainerPage.getByText(/Übungen|Runde planen/i)).toBeVisible();
-
-  await trainerPage
-    .getByRole("button", { name: /Änderungen speichern/i })
-    .click();
-
-  await trainerPage.waitForTimeout(PUSHER_DELAY);
-  await expect(trainerPage.getByText(/Runde 1|Entwurf|DRAFT/i)).toBeVisible();
+  await createDraftRound(trainerPage, ["Test Exercise 1"]);
+  // Use .first() to avoid strict mode violation: both <h4>Runde 1</h4> and <span>Entwurf</span> match
+  await expect(trainerPage.getByText(/Runde 1|Entwurf|DRAFT/i).first()).toBeVisible();
 
   await athleteCtx.close();
   await trainerCtx.close();
@@ -88,13 +80,7 @@ test("athlete sees released round after trainer releases it", async ({
   const trainerPage = await trainerCtx.newPage();
   await joinSessionAsTrainer(trainerPage);
 
-  await trainerPage
-    .getByRole("button", { name: /\+ Runde|Neue Runde/i })
-    .click();
-  await trainerPage
-    .getByRole("button", { name: /Änderungen speichern/i })
-    .click();
-  await trainerPage.waitForTimeout(PUSHER_DELAY);
+  await createDraftRound(trainerPage, ["Test Exercise 1"]);
 
   // Release the round
   await releaseDraftRound(trainerPage);
@@ -121,19 +107,13 @@ test("trainer sees completed round after athlete finishes", async ({
   const trainerPage = await trainerCtx.newPage();
   await joinSessionAsTrainer(trainerPage);
 
-  await trainerPage
-    .getByRole("button", { name: /\+ Runde|Neue Runde/i })
-    .click();
-  await trainerPage
-    .getByRole("button", { name: /Änderungen speichern/i })
-    .click();
-  await trainerPage.waitForTimeout(PUSHER_DELAY);
+  await createDraftRound(trainerPage, ["Test Exercise 1"]);
   await releaseDraftRound(trainerPage);
 
   // Athlete: wait for round and complete it
   await athletePage.waitForTimeout(PUSHER_DELAY);
   const completeBtn = athletePage.getByRole("button", {
-    name: /Runde abschliessen/i,
+    name: /Runde abschlie[sß]en|Session abschlie[sß]en/i,
   });
   if (await completeBtn.isVisible({ timeout: 5000 })) {
     // Fill required difficulty feedback
@@ -165,23 +145,13 @@ test("session ends when final round is completed", async ({ browser }) => {
   await joinSessionAsTrainer(trainerPage);
 
   // Create final round
-  await trainerPage
-    .getByRole("button", { name: /\+ Runde|Neue Runde/i })
-    .click();
-  const finalCheckbox = trainerPage.getByLabel(/letzte Runde|Final/i);
-  if (await finalCheckbox.isVisible({ timeout: 2000 })) {
-    await finalCheckbox.check();
-  }
-  await trainerPage
-    .getByRole("button", { name: /Änderungen speichern/i })
-    .click();
-  await trainerPage.waitForTimeout(PUSHER_DELAY);
+  await createDraftRound(trainerPage, ["Test Exercise 1"], true);
   await releaseDraftRound(trainerPage);
 
   // Athlete: complete the final round
   await athletePage.waitForTimeout(PUSHER_DELAY);
   const completeBtn = athletePage.getByRole("button", {
-    name: /Runde abschliessen/i,
+    name: /Runde abschlie[sß]en|Session abschlie[sß]en/i,
   });
   if (await completeBtn.isVisible({ timeout: 5000 })) {
     await athletePage
@@ -191,15 +161,15 @@ test("session ends when final round is completed", async ({ browser }) => {
     await completeBtn.click();
   }
 
-  // Both should see COMPLETED
+  // Both should see COMPLETED (use .first(): both <span>COMPLETED</span> + <h2>🎉 Session abgeschlossen!</h2> match)
   await athletePage.waitForTimeout(PUSHER_DELAY);
   await expect(
-    athletePage.getByText(/Session abgeschlossen|COMPLETED/i),
+    athletePage.getByText(/Session abgeschlossen|COMPLETED/i).first(),
   ).toBeVisible({ timeout: 8000 });
 
   await trainerPage.waitForTimeout(PUSHER_DELAY);
   await expect(
-    trainerPage.getByText(/Session abgeschlossen|COMPLETED/i),
+    trainerPage.getByText(/Session abgeschlossen|COMPLETED/i).first(),
   ).toBeVisible({ timeout: 8000 });
 
   await athleteCtx.close();
@@ -219,23 +189,13 @@ test("both users see session completion and can navigate to dashboard", async ({
   await joinSessionAsTrainer(trainerPage);
 
   // Trainer creates and releases final round
-  await trainerPage
-    .getByRole("button", { name: /\+ Runde|Neue Runde/i })
-    .click();
-  const finalCheckbox = trainerPage.getByLabel(/letzte Runde|Final/i);
-  if (await finalCheckbox.isVisible({ timeout: 2000 })) {
-    await finalCheckbox.check();
-  }
-  await trainerPage
-    .getByRole("button", { name: /Änderungen speichern/i })
-    .click();
-  await trainerPage.waitForTimeout(PUSHER_DELAY);
+  await createDraftRound(trainerPage, ["Test Exercise 1"], true);
   await releaseDraftRound(trainerPage);
 
   // Athlete completes the round
   await athletePage.waitForTimeout(PUSHER_DELAY);
   const completeBtn = athletePage.getByRole("button", {
-    name: /Runde abschliessen/i,
+    name: /Runde abschlie[sß]en|Session abschlie[sß]en/i,
   });
   if (await completeBtn.isVisible({ timeout: 5000 })) {
     await athletePage

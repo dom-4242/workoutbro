@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   createWaitingSession,
   joinSessionAsTrainer,
+  createDraftRound,
   releaseDraftRound,
   PUSHER_DELAY,
 } from "../helpers/session-helpers";
@@ -23,13 +24,7 @@ async function setupReleasedRound(browser: import("@playwright/test").Browser) {
   const trainerPage = await trainerCtx.newPage();
   await joinSessionAsTrainer(trainerPage);
 
-  await trainerPage
-    .getByRole("button", { name: /\+ Runde|Neue Runde/i })
-    .click();
-  await trainerPage
-    .getByRole("button", { name: /Änderungen speichern/i })
-    .click();
-  await trainerPage.waitForTimeout(PUSHER_DELAY);
+  await createDraftRound(trainerPage, ["Test Exercise 1"]);
   await releaseDraftRound(trainerPage);
 
   // Wait for athlete to receive the event
@@ -38,13 +33,16 @@ async function setupReleasedRound(browser: import("@playwright/test").Browser) {
   return { athleteCtx, athletePage, trainerCtx, trainerPage };
 }
 
-// ─── Test 12a: Difficulty rating "Zu einfach" ────────────────────────────────
+// ─── Test 12a: Difficulty rating "Zu leicht" ─────────────────────────────────
+// setupReleasedRound can take 15-25s (createSession + joinSession + createRound + release)
+// → give each test 60s to avoid flaky timeouts on slower runs
 test.describe("difficulty ratings", () => {
-  test("athlete can select 'Zu einfach'", async ({ browser }) => {
+  test.setTimeout(60000);
+  test("athlete can select 'Zu leicht'", async ({ browser }) => {
     const { athletePage, athleteCtx, trainerCtx } =
       await setupReleasedRound(browser);
 
-    const btn = athletePage.getByRole("button", { name: /Zu einfach/i }).first();
+    const btn = athletePage.getByRole("button", { name: /Zu leicht/i }).first();
     if (await btn.isVisible({ timeout: 5000 })) {
       await btn.click();
       await expect(btn).toHaveClass(/bg-|selected|active|ring/);
@@ -86,7 +84,7 @@ test.describe("difficulty ratings", () => {
 });
 
 // ─── Test 13: Pain region selection ──────────────────────────────────────────
-test("pain region selection works on SVG body selector", async ({ browser }) => {
+test("pain region selection works on SVG body selector", { timeout: 60000 }, async ({ browser }) => {
   const { athletePage, athleteCtx, trainerCtx } =
     await setupReleasedRound(browser);
 
@@ -125,7 +123,7 @@ test("pain region selection works on SVG body selector", async ({ browser }) => 
 });
 
 // ─── Test 14: Feedback is saved and visible to trainer ───────────────────────
-test("trainer can see athlete feedback after round completion", async ({
+test("trainer can see athlete feedback after round completion", { timeout: 60000 }, async ({
   browser,
 }) => {
   const { athletePage, athleteCtx, trainerPage, trainerCtx } =
@@ -147,7 +145,7 @@ test("trainer can see athlete feedback after round completion", async ({
 
     // Submit round
     const completeBtn = athletePage.getByRole("button", {
-      name: /Runde abschliessen/i,
+      name: /Runde abschlie[sß]en|Session abschlie[sß]en/i,
     });
     if (await completeBtn.isVisible({ timeout: 2000 })) {
       await completeBtn.click();

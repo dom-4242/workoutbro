@@ -37,7 +37,8 @@ test("admin can create a complete exercise", async ({ page }) => {
   await page.getByRole("checkbox", { name: /RPE/i }).check();
   await page.getByRole("checkbox", { name: /Notizen/i }).check();
 
-  await page.getByRole("button", { name: /Speichern/i }).click();
+  // ExerciseForm shows "Erstellen" for new exercises, "Speichern" for edits
+  await page.getByRole("button", { name: /Erstellen|Speichern/i }).click();
 
   await expect(page.getByText("E2E Test Exercise")).toBeVisible({
     timeout: 5000,
@@ -114,31 +115,24 @@ test("exercise can be added to round planner", async ({ browser }) => {
     .getByRole("button", { name: /\+ Runde|Neue Runde/i })
     .click();
 
-  // Select an exercise from the dropdown
-  const exerciseSelect = trainerPage.getByRole("combobox").first();
+  // Add exercise slot first, then select from combobox
+  await trainerPage.getByRole("button", { name: /Übung hinzufügen/i }).click();
+  const exerciseSelect = trainerPage.getByRole("combobox").last();
   if (await exerciseSelect.isVisible({ timeout: 3000 })) {
-    await exerciseSelect.selectOption({ index: 1 }); // Select first exercise
-    const addBtn = trainerPage.getByRole("button", {
-      name: /Übung hinzufügen/i,
-    });
-    if (await addBtn.isVisible({ timeout: 2000 })) {
-      await addBtn.click();
-    }
+    await exerciseSelect.selectOption({ index: 0 }); // Select first exercise
   }
 
-  // Verify exercise appears in round planner
-  await expect(
-    trainerPage.getByText(/Test Exercise|Exercise/i).first(),
-  ).toBeVisible({ timeout: 5000 });
+  // Verify exercise is selected in combobox (avoid hidden <option> element)
+  await expect(trainerPage.getByRole("combobox").last()).not.toHaveValue("");
 
   await trainerPage
-    .getByRole("button", { name: /Änderungen speichern/i })
+    .getByRole("button", { name: /speichern/i })
     .click();
   await trainerPage.waitForTimeout(PUSHER_DELAY);
 
-  // Round with exercise should be saved
+  // Round with exercise should be saved (use .first() to avoid strict mode: h4 + span match)
   await expect(
-    trainerPage.getByText(/Runde 1|DRAFT|Entwurf/i),
+    trainerPage.getByText(/Runde 1|DRAFT|Entwurf/i).first(),
   ).toBeVisible({ timeout: 5000 });
 
   await athleteCtx.close();
