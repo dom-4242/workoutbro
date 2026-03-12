@@ -1,10 +1,10 @@
 "use client";
 
-import { ExerciseDifficulty, BodyRegion } from "@prisma/client";
+import { BodyRegion } from "@prisma/client";
 
 type Exercise = {
   id: string;
-  difficulty?: ExerciseDifficulty | null;
+  rpe?: number | null;
   hadPain: boolean;
   painRegions: BodyRegion[];
   athleteNotes?: string | null;
@@ -24,17 +24,27 @@ type Props = {
   rounds: Round[];
 };
 
-const difficultyLabels: Record<ExerciseDifficulty, string> = {
-  TOO_EASY: "Zu leicht 😴",
-  JUST_RIGHT: "Genau richtig 💪",
-  TOO_HARD: "Zu schwer 😰",
+const CR10_LABELS: Record<number, string> = {
+  0: "Gar nichts",
+  1: "Sehr schwach",
+  2: "Schwach",
+  3: "Moderat",
+  4: "Etwas schwer",
+  5: "Schwer",
+  6: "Schwer",
+  7: "Sehr schwer",
+  8: "Sehr schwer",
+  9: "Extrem schwer",
+  10: "Absolutes Maximum",
 };
 
-const difficultyColors: Record<ExerciseDifficulty, string> = {
-  TOO_EASY: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  JUST_RIGHT: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  TOO_HARD: "bg-red-500/20 text-red-400 border-red-500/30",
-};
+function getCR10Style(rpe: number): string {
+  if (rpe <= 2) return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+  if (rpe <= 4) return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+  if (rpe <= 6) return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+  if (rpe <= 8) return "bg-orange-500/20 text-orange-400 border-orange-500/30";
+  return "bg-red-500/20 text-red-400 border-red-500/30";
+}
 
 const regionLabels: Record<BodyRegion, string> = {
   NECK_SHOULDERS: "Nacken/Schultern",
@@ -97,12 +107,13 @@ export default function CompletedRoundsHistory({ rounds }: Props) {
                 <p className="font-medium mb-2">{ex.exercise.name}</p>
 
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {/* Difficulty Badge */}
-                  {ex.difficulty && (
+                  {/* CR-10 Badge */}
+                  {ex.rpe !== null && ex.rpe !== undefined && (
                     <span
-                      className={`inline-block px-2 py-1 border rounded text-xs font-medium ${difficultyColors[ex.difficulty]}`}
+                      className={`inline-flex items-center gap-1.5 px-2 py-1 border rounded text-xs font-medium ${getCR10Style(ex.rpe)}`}
                     >
-                      {difficultyLabels[ex.difficulty]}
+                      <span className="font-bold">CR-10: {ex.rpe}</span>
+                      <span className="opacity-80">· {CR10_LABELS[ex.rpe]}</span>
                     </span>
                   )}
 

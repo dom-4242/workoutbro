@@ -127,13 +127,6 @@ enum RoundStatus {
   COMPLETED    // Athlete completed
 }
 
-// Athlete feedback on exercise difficulty
-enum ExerciseDifficulty {
-  TOO_EASY
-  JUST_RIGHT
-  TOO_HARD
-}
-
 // Body regions for pain reporting (simplified for quick input)
 enum BodyRegion {
   NECK_SHOULDERS
@@ -213,7 +206,8 @@ model RoundExercise {
   trainerNotes    String?  // Notes from trainer
   
   // Athlete feedback (filled after execution, MANDATORY)
-  difficulty      ExerciseDifficulty?
+  // Borg CR-10 scale: 0 (nothing) – 10 (absolute maximum)
+  rpe             Int?
   hadPain         Boolean           @default(false)
   painRegions     BodyRegion[]      // Array of affected body regions
   athleteNotes    String?           // Optional feedback from athlete

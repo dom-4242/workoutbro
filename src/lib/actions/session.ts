@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { ExerciseDifficulty, BodyRegion } from "@prisma/client";
+import { BodyRegion } from "@prisma/client";
 import { pusherServer } from "@/lib/pusher";
 import { PUSHER_EVENTS, getSessionChannel } from "@/lib/pusher-events";
 
@@ -62,7 +62,7 @@ export async function completeRound(data: {
   roundId: string;
   feedback: Array<{
     exerciseId: string;
-    difficulty: ExerciseDifficulty;
+    rpe: number; // Borg CR-10: 0–10
     hadPain: boolean;
     painRegions: BodyRegion[];
     athleteNotes?: string;
@@ -100,7 +100,7 @@ export async function completeRound(data: {
       prisma.roundExercise.update({
         where: { id: fb.exerciseId },
         data: {
-          difficulty: fb.difficulty,
+          rpe: fb.rpe,
           hadPain: fb.hadPain,
           painRegions: fb.painRegions,
           athleteNotes: fb.athleteNotes,
