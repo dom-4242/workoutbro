@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "../helpers/session-helpers";
 
 test.describe("Authentication", () => {
   test("redirects to login when not authenticated", async ({ page }) => {
@@ -13,15 +14,10 @@ test.describe("Authentication", () => {
   });
 
   test("login with valid credentials", async ({ page }) => {
-    await page.goto("/login");
-    await page
-      .getByPlaceholder("name@example.com")
-      .fill(process.env.TEST_USER_EMAIL!);
-    await page
-      .getByPlaceholder("••••••••")
-      .fill(process.env.TEST_USER_PASSWORD!);
-    await page.getByRole("button", { name: /anmelden/i }).click();
-    await expect(page).toHaveURL("/dashboard");
+    // Use loginAs helper which has proper waitForURL (30s) + networkidle waits
+    // to handle cold server startup during first Chromium test run
+    await loginAs(page, process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
+    await expect(page).toHaveURL("/dashboard", { timeout: 5000 });
   });
 
   test("shows error with invalid credentials", async ({ page }) => {
@@ -33,16 +29,9 @@ test.describe("Authentication", () => {
   });
   test.describe("Admin access control", () => {
     test("admin can access admin area", async ({ page }) => {
-      // Login as admin
-      await page.goto("/login");
-      await page
-        .getByPlaceholder("name@example.com")
-        .fill(process.env.TEST_USER_EMAIL!);
-      await page
-        .getByPlaceholder("••••••••")
-        .fill(process.env.TEST_USER_PASSWORD!);
-      await page.getByRole("button", { name: /anmelden/i }).click();
-      await expect(page).toHaveURL("/dashboard");
+      // Login as admin — use loginAs helper (30s timeout, handles cold server)
+      await loginAs(page, process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
+      await expect(page).toHaveURL("/dashboard", { timeout: 5000 });
 
       // Navigate to admin
       await page.goto("/admin/users");
@@ -50,16 +39,9 @@ test.describe("Authentication", () => {
     });
 
     test("trainer cannot access admin area", async ({ page }) => {
-      // Login as trainer
-      await page.goto("/login");
-      await page
-        .getByPlaceholder("name@example.com")
-        .fill(process.env.TEST_TRAINER_EMAIL!);
-      await page
-        .getByPlaceholder("••••••••")
-        .fill(process.env.TEST_TRAINER_PASSWORD!);
-      await page.getByRole("button", { name: /anmelden/i }).click();
-      await expect(page).toHaveURL("/dashboard");
+      // Login as trainer — use loginAs helper (30s timeout, handles cold server)
+      await loginAs(page, process.env.TEST_TRAINER_EMAIL!, process.env.TEST_TRAINER_PASSWORD!);
+      await expect(page).toHaveURL("/dashboard", { timeout: 5000 });
 
       // Try to access admin — should redirect to dashboard
       await page.goto("/admin/users");
@@ -69,16 +51,9 @@ test.describe("Authentication", () => {
 
   test.describe("Weight tracking", () => {
     test("athlete can add weight entry", async ({ page }) => {
-      // Login
-      await page.goto("/login");
-      await page
-        .getByPlaceholder("name@example.com")
-        .fill(process.env.TEST_USER_EMAIL!);
-      await page
-        .getByPlaceholder("••••••••")
-        .fill(process.env.TEST_USER_PASSWORD!);
-      await page.getByRole("button", { name: /anmelden/i }).click();
-      await expect(page).toHaveURL("/dashboard");
+      // Login — use loginAs helper (30s timeout, handles cold server)
+      await loginAs(page, process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
+      await expect(page).toHaveURL("/dashboard", { timeout: 5000 });
 
       // Fill weight form — use placeholder instead of label
       await page.getByPlaceholder("75.5").fill("80");

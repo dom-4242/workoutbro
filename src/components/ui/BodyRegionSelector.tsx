@@ -62,6 +62,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="NECK_SHOULDERS"
               onClick={() => toggleRegion("NECK_SHOULDERS")}
             />
             <text
@@ -85,6 +86,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="CHEST"
               onClick={() => toggleRegion("CHEST")}
             />
 
@@ -98,6 +100,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="ABS"
               onClick={() => toggleRegion("ABS")}
             />
 
@@ -112,6 +115,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="LEFT_ARM"
               onClick={() => toggleRegion("LEFT_ARM")}
             />
 
@@ -126,6 +130,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="RIGHT_ARM"
               onClick={() => toggleRegion("RIGHT_ARM")}
             />
 
@@ -140,6 +145,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="LEFT_THIGH_FRONT"
               onClick={() => toggleRegion("LEFT_THIGH_FRONT")}
             />
 
@@ -154,6 +160,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="RIGHT_THIGH_FRONT"
               onClick={() => toggleRegion("RIGHT_THIGH_FRONT")}
             />
 
@@ -166,6 +173,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="LEFT_KNEE"
               onClick={() => toggleRegion("LEFT_KNEE")}
             />
 
@@ -178,6 +186,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="RIGHT_KNEE"
               onClick={() => toggleRegion("RIGHT_KNEE")}
             />
 
@@ -192,6 +201,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="LEFT_CALF"
               onClick={() => toggleRegion("LEFT_CALF")}
             />
 
@@ -206,6 +216,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="RIGHT_CALF"
               onClick={() => toggleRegion("RIGHT_CALF")}
             />
           </svg>
@@ -236,6 +247,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="UPPER_BACK"
               onClick={() => toggleRegion("UPPER_BACK")}
             />
 
@@ -249,6 +261,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="LOWER_BACK"
               onClick={() => toggleRegion("LOWER_BACK")}
             />
 
@@ -263,6 +276,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="LEFT_THIGH_BACK"
               onClick={() => toggleRegion("LEFT_THIGH_BACK")}
             />
 
@@ -277,6 +291,7 @@ export default function BodyRegionSelector({ value, onChange }: Props) {
               stroke="#9CA3AF"
               strokeWidth="2"
               className="cursor-pointer hover:opacity-80 transition-opacity"
+              data-region="RIGHT_THIGH_BACK"
               onClick={() => toggleRegion("RIGHT_THIGH_BACK")}
             />
           </svg>
