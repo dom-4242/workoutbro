@@ -43,6 +43,15 @@ export default async function DashboardPage() {
     ? await getTrainerActiveSessions()
     : { waiting: [], active: [] };
 
+  // Check if athlete has a trainer assigned
+  const athleteUser = isOnlyTrainer
+    ? null
+    : await prisma.user.findUnique({
+        where: { id: (session.user as any).id },
+        select: { trainerId: true },
+      });
+  const hasTrainer = !!athleteUser?.trainerId;
+
   // Check for active session as athlete
   const activeAthleteSession = isOnlyTrainer
     ? null
@@ -169,7 +178,16 @@ export default async function DashboardPage() {
         {/* Session Start Button — nur für Athleten (hide if active session exists) */}
         {!isOnlyTrainer && !activeAthleteSession && (
           <div className="mb-6 md:mb-8">
-            <SessionStartButton />
+            {hasTrainer ? (
+              <SessionStartButton />
+            ) : (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 md:p-6">
+                <h3 className="font-semibold mb-4">Training Session</h3>
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm">
+                  ⚠️ Kein Trainer zugewiesen. Bitte wende dich an einen Administrator.
+                </div>
+              </div>
+            )}
           </div>
         )}
 
