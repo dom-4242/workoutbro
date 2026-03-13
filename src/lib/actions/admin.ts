@@ -70,14 +70,10 @@ export async function assignTrainer(
 ) {
   await requireAdmin();
 
-  console.log("assignTrainer called:", { athleteId, trainerId });
-
   await prisma.user.update({
     where: { id: athleteId },
     data: { trainerId: trainerId },
   });
-
-  console.log("assignTrainer success!");
 
   revalidatePath("/admin/users");
 }

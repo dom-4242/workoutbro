@@ -6,6 +6,46 @@ import { revalidatePath } from "next/cache";
 import { BodyRegion, Role } from "@prisma/client";
 import { pusherServer } from "@/lib/pusher";
 import { PUSHER_EVENTS, getSessionChannel } from "@/lib/pusher-events";
+import { z } from "zod";
+
+// ============================================
+// ZOD VALIDATION SCHEMAS
+// ============================================
+
+const completeRoundSchema = z.object({
+  roundId: z.string().min(1, "roundId ist erforderlich"),
+  feedback: z
+    .array(
+      z.object({
+        exerciseId: z.string().min(1, "exerciseId ist erforderlich"),
+        rpe: z.number().int().min(0).max(10, "RPE muss zwischen 0 und 10 liegen"),
+        hadPain: z.boolean(),
+        painRegions: z.array(z.nativeEnum(BodyRegion)),
+        athleteNotes: z.string().max(500).optional(),
+      }),
+    )
+    .min(1, "Mindestens eine Übung erforderlich"),
+});
+
+const saveRoundSchema = z.object({
+  sessionId: z.string().min(1, "sessionId ist erforderlich"),
+  roundId: z.string().min(1).optional(),
+  isFinalRound: z.boolean().optional(),
+  exercises: z
+    .array(
+      z.object({
+        exerciseId: z.string().min(1),
+        order: z.number().int().min(0),
+        plannedWeight: z.number().positive().optional(),
+        plannedReps: z.number().int().positive().optional(),
+        plannedDistance: z.number().positive().optional(),
+        plannedTime: z.number().int().positive().optional(),
+        plannedRPE: z.number().int().min(0).max(10).optional(),
+        trainerNotes: z.string().max(500).optional(),
+      }),
+    )
+    .min(1, "Mindestens eine Übung erforderlich"),
+});
 
 // Helper: Require auth
 async function requireAuth() {
@@ -80,6 +120,12 @@ export async function completeRound(data: {
 }) {
   const session = await requireRole("ATHLETE");
   const athleteId = (session.user as any).id;
+
+  // Validate input
+  const parsed = completeRoundSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Ungültige Eingabedaten");
+  }
 
   // Verify access
   const round = await prisma.sessionRound.findUnique({
@@ -230,6 +276,12 @@ export async function saveRound(data: {
 }) {
   const session = await requireRole("TRAINER");
   const trainerId = (session.user as any).id;
+
+  // Validate input
+  const parsed = saveRoundSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Ungültige Eingabedaten");
+  }
 
   // Verify trainer access
   const trainingSession = await prisma.trainingSession.findUnique({
