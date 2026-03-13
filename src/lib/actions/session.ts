@@ -94,42 +94,47 @@ export async function completeRound(data: {
     throw new Error("Feedback für alle Übungen erforderlich");
   }
 
-  // Update all exercises with feedback
-  await Promise.all(
-    data.feedback.map((fb) =>
-      prisma.roundExercise.update({
-        where: { id: fb.exerciseId },
-        data: {
-          rpe: fb.rpe,
-          hadPain: fb.hadPain,
-          painRegions: fb.painRegions,
-          athleteNotes: fb.athleteNotes,
-          completedAt: new Date(),
-        },
-      }),
-    ),
-  );
+  try {
+    // Update all exercises with feedback
+    await Promise.all(
+      data.feedback.map((fb) =>
+        prisma.roundExercise.update({
+          where: { id: fb.exerciseId },
+          data: {
+            rpe: fb.rpe,
+            hadPain: fb.hadPain,
+            painRegions: fb.painRegions,
+            athleteNotes: fb.athleteNotes,
+            completedAt: new Date(),
+          },
+        }),
+      ),
+    );
 
-  // Mark round as completed
-  await prisma.sessionRound.update({
-    where: { id: data.roundId },
-    data: {
-      status: "COMPLETED",
-      completedAt: new Date(),
-    },
-  });
-
-  // Check if this was the final round → complete session
-  if (round.isFinalRound) {
-    await prisma.trainingSession.update({
-      where: { id: round.sessionId },
+    // Mark round as completed
+    await prisma.sessionRound.update({
+      where: { id: data.roundId },
       data: {
         status: "COMPLETED",
         completedAt: new Date(),
       },
     });
 
-    revalidatePath("/dashboard");
+    // Check if this was the final round → complete session
+    if (round.isFinalRound) {
+      await prisma.trainingSession.update({
+        where: { id: round.sessionId },
+        data: {
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      });
+
+      revalidatePath("/dashboard");
+    }
+  } catch (err) {
+    console.error("[completeRound] DB error:", err);
+    throw new Error("Fehler beim Speichern des Feedbacks. Bitte nochmals versuchen.");
   }
 
   revalidatePath(`/dashboard/session/${round.sessionId}`);
@@ -140,12 +145,18 @@ export async function completeRound(data: {
   const _roundNumber = round.roundNumber;
   const _isFinalRound = round.isFinalRound;
   setTimeout(async () => {
-    await pusherServer.trigger(getSessionChannel(_sessionId), PUSHER_EVENTS.ROUND_COMPLETED, {
-      roundId: _roundId,
-      roundNumber: _roundNumber,
-    });
-    if (_isFinalRound) {
-      await pusherServer.trigger(getSessionChannel(_sessionId), PUSHER_EVENTS.SESSION_COMPLETED, {});
+    try {
+      await pusherServer.trigger(getSessionChannel(_sessionId), PUSHER_EVENTS.ROUND_COMPLETED, {
+        roundId: _roundId,
+        roundNumber: _roundNumber,
+      });
+      if (_isFinalRound) {
+        await pusherServer.trigger(getSessionChannel(_sessionId), PUSHER_EVENTS.SESSION_COMPLETED, {});
+      }
+    } catch (err) {
+      console.error("[completeRound] Pusher trigger failed:", err);
+      // Non-critical: DB is already updated, real-time notification failed
+      // Trainer/Athlete can still refresh manually
     }
   }, 800);
 }
