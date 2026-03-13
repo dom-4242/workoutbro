@@ -5,35 +5,7 @@ import { BodyRegion } from "@prisma/client";
 import BodyRegionSelector from "./BodyRegionSelector";
 import { completeRound } from "@/lib/actions/session";
 import { useRouter } from "next/navigation";
-
-// Borg CR-10 scale labels and colors
-const CR10_LABELS: Record<number, string> = {
-  0: "Gar nichts",
-  1: "Sehr schwach",
-  2: "Schwach",
-  3: "Moderat",
-  4: "Etwas schwer",
-  5: "Schwer",
-  6: "Schwer",
-  7: "Sehr schwer",
-  8: "Sehr schwer",
-  9: "Extrem schwer",
-  10: "Absolutes Maximum",
-};
-
-function getCR10Color(value: number): string {
-  if (value <= 2) return "#60a5fa"; // blue
-  if (value <= 4) return "#34d399"; // emerald
-  if (value <= 6) return "#fbbf24"; // amber
-  if (value <= 8) return "#f97316"; // orange
-  return "#ef4444"; // red
-}
-
-function getCR10TrackStyle(value: number): string {
-  const color = getCR10Color(value);
-  const pct = (value / 10) * 100;
-  return `linear-gradient(to right, ${color} 0%, ${color} ${pct}%, #374151 ${pct}%, #374151 100%)`;
-}
+import { CR10_LABELS, getCR10Color, getCR10TrackStyle } from "@/lib/cr10";
 
 type Exercise = {
   id: string;
@@ -214,7 +186,7 @@ export default function FeedbackForm({ roundId, exercises, isFinalRound }: Props
                   min={0}
                   max={10}
                   step={1}
-                  value={hasRpe ? currentRpe : 5}
+                  value={hasRpe ? currentRpe : 0}
                   onChange={(e) =>
                     updateFeedback(ex.id, "rpe", parseInt(e.target.value))
                   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { BodyRegion } from "@prisma/client";
+import { CR10_LABELS, getCR10Style } from "@/lib/cr10";
 
 type Exercise = {
   id: string;
@@ -23,28 +24,6 @@ type Round = {
 type Props = {
   rounds: Round[];
 };
-
-const CR10_LABELS: Record<number, string> = {
-  0: "Gar nichts",
-  1: "Sehr schwach",
-  2: "Schwach",
-  3: "Moderat",
-  4: "Etwas schwer",
-  5: "Schwer",
-  6: "Schwer",
-  7: "Sehr schwer",
-  8: "Sehr schwer",
-  9: "Extrem schwer",
-  10: "Absolutes Maximum",
-};
-
-function getCR10Style(rpe: number): string {
-  if (rpe <= 2) return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-  if (rpe <= 4) return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
-  if (rpe <= 6) return "bg-amber-500/20 text-amber-400 border-amber-500/30";
-  if (rpe <= 8) return "bg-orange-500/20 text-orange-400 border-orange-500/30";
-  return "bg-red-500/20 text-red-400 border-red-500/30";
-}
 
 const regionLabels: Record<BodyRegion, string> = {
   NECK_SHOULDERS: "Nacken/Schultern",

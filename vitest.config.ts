@@ -5,12 +5,16 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: "jsdom",
+    environment: "node", // Unit Tests brauchen kein Browser-Environment
     globals: true,
     setupFiles: ["./src/tests/setup.ts"],
+    environmentMatchGlobs: [
+      ["**/*.test.tsx", "jsdom"], // Komponenten-Tests: jsdom
+    ],
     exclude: [
       "**/node_modules/**",
       "**/e2e/**", // ← Playwright Tests ignorieren
+      "**/.claude/**", // ← Git Worktrees ignorieren
     ],
   },
   resolve: {

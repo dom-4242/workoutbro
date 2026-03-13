@@ -116,11 +116,12 @@ test("trainer sees completed round after athlete finishes", async ({
     name: /Runde abschlie[sß]en|Session abschlie[sß]en/i,
   });
   if (await completeBtn.isVisible({ timeout: 5000 })) {
-    // Fill required difficulty feedback
-    await athletePage
-      .getByRole("button", { name: /Genau richtig/i })
-      .first()
-      .click();
+    // Fill required RPE feedback via CR-10 slider
+    const slider = athletePage.locator('input[type="range"]').first();
+    if (await slider.isVisible({ timeout: 3000 })) {
+      await slider.fill("5");
+      await slider.dispatchEvent("input");
+    }
     await completeBtn.click();
   }
 
@@ -154,10 +155,11 @@ test("session ends when final round is completed", async ({ browser }) => {
     name: /Runde abschlie[sß]en|Session abschlie[sß]en/i,
   });
   if (await completeBtn.isVisible({ timeout: 5000 })) {
-    await athletePage
-      .getByRole("button", { name: /Genau richtig/i })
-      .first()
-      .click();
+    const slider = athletePage.locator('input[type="range"]').first();
+    if (await slider.isVisible({ timeout: 3000 })) {
+      await slider.fill("5");
+      await slider.dispatchEvent("input");
+    }
     await completeBtn.click();
   }
 
@@ -198,10 +200,11 @@ test("both users see session completion and can navigate to dashboard", async ({
     name: /Runde abschlie[sß]en|Session abschlie[sß]en/i,
   });
   if (await completeBtn.isVisible({ timeout: 5000 })) {
-    await athletePage
-      .getByRole("button", { name: /Genau richtig/i })
-      .first()
-      .click();
+    const slider = athletePage.locator('input[type="range"]').first();
+    if (await slider.isVisible({ timeout: 3000 })) {
+      await slider.fill("5");
+      await slider.dispatchEvent("input");
+    }
     await completeBtn.click();
   }
 
