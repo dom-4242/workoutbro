@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { BodyRegion } from "@prisma/client";
 import BodyRegionSelector from "./BodyRegionSelector";
 import { completeRound } from "@/lib/actions/session";
@@ -194,13 +194,15 @@ export default function FeedbackForm({ roundId, exercises, isFinalRound }: Props
                     if (!hasRpe) updateFeedback(ex.id, "rpe", 5);
                   }}
                   className="w-full h-3 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: hasRpe
-                      ? getCR10TrackStyle(currentRpe)
-                      : "#374151",
-                    // Thumb styles via CSS custom props
-                    ["--thumb-color" as any]: color,
-                  }}
+                  style={
+                    {
+                      background: hasRpe
+                        ? getCR10TrackStyle(currentRpe)
+                        : "#374151",
+                      // Thumb styles via CSS custom props
+                      "--thumb-color": color,
+                    } as React.CSSProperties & { "--thumb-color": string }
+                  }
                 />
                 {/* Scale labels */}
                 <div className="flex justify-between mt-2 text-xs text-gray-500">

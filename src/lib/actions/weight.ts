@@ -28,7 +28,7 @@ export async function addWeightEntry(formData: FormData) {
       weight,
       note: note || null,
       date: dateTime,
-      userId: (session.user as any).id,
+      userId: session.user.id,
     },
   });
 

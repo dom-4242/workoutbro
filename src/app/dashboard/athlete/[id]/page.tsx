@@ -14,7 +14,7 @@ export default async function AthleteDetailPage({ params }: Props) {
   if (!session) redirect("/login");
 
   const { id } = await params;
-  const roles = ((session.user as any)?.roles as string[]) ?? [];
+  const roles = session.user.roles ?? [];
   const isTrainer = roles.includes("TRAINER");
   const isAdmin = roles.includes("ADMIN");
 
@@ -25,7 +25,7 @@ export default async function AthleteDetailPage({ params }: Props) {
   const athlete = await prisma.user.findFirst({
     where: {
       id,
-      ...(isTrainer && !isAdmin ? { trainerId: (session.user as any).id } : {}),
+      ...(isTrainer && !isAdmin ? { trainerId: session.user.id } : {}),
     },
     include: {
       weightEntries: {

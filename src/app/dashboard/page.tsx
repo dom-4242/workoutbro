@@ -16,14 +16,14 @@ export default async function DashboardPage() {
 
   const t = await getTranslations("dashboard");
 
-  const roles = ((session.user as any)?.roles as string[]) ?? [];
+  const roles = session.user.roles ?? [];
   const isTrainer = roles.includes("TRAINER");
   const isOnlyTrainer = isTrainer && !roles.includes("ATHLETE");
 
   const weightEntries = isOnlyTrainer
     ? []
     : await prisma.weightEntry.findMany({
-        where: { userId: (session.user as any).id },
+        where: { userId: session.user.id },
         orderBy: { date: "desc" },
         take: 7,
       });
@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   // Load athletes if user is a trainer
   const athletes = isTrainer
     ? await prisma.user.findMany({
-        where: { trainerId: (session.user as any).id },
+        where: { trainerId: session.user.id },
         include: { roles: true },
       })
     : [];
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
   const athleteUser = isOnlyTrainer
     ? null
     : await prisma.user.findUnique({
-        where: { id: (session.user as any).id },
+        where: { id: session.user.id },
         select: { trainerId: true },
       });
   const hasTrainer = !!athleteUser?.trainerId;
@@ -57,7 +57,7 @@ export default async function DashboardPage() {
     ? null
     : await prisma.trainingSession.findFirst({
         where: {
-          athleteId: (session.user as any).id,
+          athleteId: session.user.id,
           status: { in: ["WAITING", "ACTIVE"] },
         },
         select: { id: true, status: true },
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
     ? []
     : await prisma.trainingSession.findMany({
         where: {
-          athleteId: (session.user as any).id,
+          athleteId: session.user.id,
           status: { in: ["COMPLETED", "CANCELLED"] },
         },
         select: {
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
   const activeTrainerSession = isTrainer
     ? await prisma.trainingSession.findFirst({
         where: {
-          trainerId: (session.user as any).id,
+          trainerId: session.user.id,
           status: "ACTIVE",
         },
         select: { id: true, athlete: { select: { name: true } } },

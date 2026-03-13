@@ -12,11 +12,10 @@ async function requireAdmin() {
   const session = await auth();
   if (!session?.user) throw new Error("Unauthorized");
 
-  const userId = (session.user as any)?.id;
+  const userId = session.user.id;
   if (!userId) throw new Error("User ID not found in session");
 
-  const roles = ((session.user as any)?.roles as string[]) ?? [];
-  if (!roles.includes("ADMIN")) throw new Error("Forbidden");
+  if (!session.user.roles?.includes("ADMIN")) throw new Error("Forbidden");
 
   return { session, userId };
 }

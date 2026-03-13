@@ -18,8 +18,7 @@ export default auth((req) => {
 
   // Protect admin pages — only ADMIN role allowed
   if (isAdminPage && isLoggedIn) {
-    const roles = (req.auth?.user as any)?.roles as string[] ?? [];
-    if (!roles.includes("ADMIN")) {
+    if (!req.auth?.user?.roles?.includes("ADMIN")) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }

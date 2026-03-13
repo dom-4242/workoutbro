@@ -57,8 +57,7 @@ async function requireAuth() {
 // Helper: Require specific role
 async function requireRole(role: Role) {
   const session = await requireAuth();
-  const roles = (session.user as any).roles as Role[] | undefined;
-  if (!roles?.includes(role)) {
+  if (!session.user.roles?.includes(role)) {
     throw new Error("Keine Berechtigung");
   }
   return session;
@@ -71,7 +70,7 @@ async function requireRole(role: Role) {
 // ATHLETE: Start new training session
 export async function startTrainingSession() {
   const session = await requireRole("ATHLETE");
-  const userId = (session.user as any).id;
+  const userId = session.user.id;
 
   // Check if user has trainer assigned
   const user = await prisma.user.findUnique({
@@ -119,7 +118,7 @@ export async function completeRound(data: {
   }>;
 }) {
   const session = await requireRole("ATHLETE");
-  const athleteId = (session.user as any).id;
+  const athleteId = session.user.id;
 
   // Validate input
   const parsed = completeRoundSchema.safeParse(data);
@@ -224,7 +223,7 @@ export async function completeRound(data: {
 // TRAINER: Join waiting session
 export async function joinTrainingSession(sessionId: string) {
   const session = await requireRole("TRAINER");
-  const trainerId = (session.user as any).id;
+  const trainerId = session.user.id;
 
   // Verify trainer access
   const trainingSession = await prisma.trainingSession.findUnique({
@@ -275,7 +274,7 @@ export async function saveRound(data: {
   }>;
 }) {
   const session = await requireRole("TRAINER");
-  const trainerId = (session.user as any).id;
+  const trainerId = session.user.id;
 
   // Validate input
   const parsed = saveRoundSchema.safeParse(data);
@@ -355,7 +354,7 @@ export async function saveRound(data: {
 // TRAINER: Release round
 export async function releaseRound(roundId: string) {
   const session = await requireRole("TRAINER");
-  const trainerId = (session.user as any).id;
+  const trainerId = session.user.id;
 
   // Verify access
   const round = await prisma.sessionRound.findUnique({
@@ -409,7 +408,7 @@ export async function releaseRound(roundId: string) {
 // TRAINER: Delete draft round
 export async function deleteRound(roundId: string) {
   const session = await requireRole("TRAINER");
-  const trainerId = (session.user as any).id;
+  const trainerId = session.user.id;
 
   // Verify access
   const round = await prisma.sessionRound.findUnique({
@@ -455,7 +454,7 @@ export async function deleteRound(roundId: string) {
 // TRAINER/ATHLETE: Cancel session
 export async function cancelSession(sessionId: string) {
   const session = await requireAuth();
-  const userId = (session.user as any).id;
+  const userId = session.user.id;
 
   const trainingSession = await prisma.trainingSession.findUnique({
     where: { id: sessionId },
@@ -496,7 +495,7 @@ export async function cancelSession(sessionId: string) {
 // Query: Get session for athlete
 export async function getAthleteSession(sessionId: string) {
   const session = await requireRole("ATHLETE");
-  const athleteId = (session.user as any).id;
+  const athleteId = session.user.id;
 
   return await prisma.trainingSession.findFirst({
     where: {
@@ -524,7 +523,7 @@ export async function getAthleteSession(sessionId: string) {
 // Query: Get session for trainer
 export async function getTrainerSession(sessionId: string) {
   const session = await requireRole("TRAINER");
-  const trainerId = (session.user as any).id;
+  const trainerId = session.user.id;
 
   return await prisma.trainingSession.findFirst({
     where: {
@@ -555,28 +554,24 @@ export async function getAvailableExercises() {
   });
 }
 
-// Query: Get active sessions for trainer
+// Query: Get active sessions for trainer (single DB query)
 export async function getTrainerActiveSessions() {
   const session = await requireRole("TRAINER");
-  const trainerId = (session.user as any).id;
+  const trainerId = session.user.id;
 
-  const waiting = await prisma.trainingSession.findMany({
+  const sessions = await prisma.trainingSession.findMany({
     where: {
-      athlete: { trainerId },
-      status: "WAITING",
+      OR: [
+        { athlete: { trainerId }, status: "WAITING" },
+        { trainerId, status: "ACTIVE" },
+      ],
     },
     include: { athlete: { select: { name: true } } },
     orderBy: { startedAt: "desc" },
   });
 
-  const active = await prisma.trainingSession.findMany({
-    where: {
-      trainerId,
-      status: "ACTIVE",
-    },
-    include: { athlete: { select: { name: true } } },
-    orderBy: { startedAt: "desc" },
-  });
-
-  return { waiting, active };
+  return {
+    waiting: sessions.filter((s) => s.status === "WAITING"),
+    active: sessions.filter((s) => s.status === "ACTIVE"),
+  };
 }

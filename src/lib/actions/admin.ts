@@ -10,8 +10,7 @@ import { Role } from "@prisma/client";
 async function requireAdmin() {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
-  const roles = ((session.user as any)?.roles as string[]) ?? [];
-  if (!roles.includes("ADMIN")) throw new Error("Forbidden");
+  if (!session.user.roles?.includes("ADMIN")) throw new Error("Forbidden");
   return session;
 }
 
