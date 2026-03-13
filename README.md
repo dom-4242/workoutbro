@@ -45,8 +45,8 @@ A web application that enables real-time collaboration between athletes and trai
   - Trainer plans and releases rounds sequentially
   - Athlete executes exercises with video loop playback
   - Mandatory feedback system:
-    - Difficulty rating (too easy/just right/too hard)
-    - Pain reporting via interactive SVG body selector (15 regions)
+    - Perceived exertion rating via Borg CR-10 scale (0–10 slider, mandatory)
+    - Pain reporting via interactive SVG body selector (15 regions, optional)
     - Optional notes per exercise
   - Session completion marking (final round indicator)
   - Session cancellation for both parties
@@ -88,9 +88,10 @@ A web application that enables real-time collaboration between athletes and trai
 
 **Frontend:**
 
-- Next.js 14 (App Router)
+- Next.js 16 (App Router)
+- React 19
 - TypeScript
-- Tailwind CSS
+- Tailwind CSS 4
 - Recharts (data visualization)
 - next-intl (i18n)
 - Pusher Channels (real-time events)
@@ -107,7 +108,7 @@ A web application that enables real-time collaboration between athletes and trai
 
 - Vitest (unit tests)
 - Playwright (E2E tests)
-- 27 tests (13 unit + 14 E2E)
+- 111 tests (63 unit + 48 E2E)
 
 **Deployment:**
 
@@ -247,6 +248,7 @@ workoutbro/
 │   │   │   ├── exercise.ts     # Exercise CRUD
 │   │   │   ├── session.ts      # Training sessions
 │   │   │   └── weight.ts       # Weight tracking
+│   │   ├── cr10.ts             # Borg CR-10 scale utilities
 │   │   ├── pusher.ts           # Pusher server instance
 │   │   ├── pusher-client.ts    # Pusher client instance
 │   │   ├── pusher-events.ts    # Event constants & types
@@ -284,8 +286,8 @@ npm run test:e2e:ui
 
 **Current test coverage:**
 
-- 13 unit tests (weight validation, user validation)
-- 14 E2E tests (auth, admin access, weight tracking)
+- 63 unit tests (weight validation, user validation, CR-10 scale, utility functions, Pusher events)
+- 48 E2E tests (auth, admin access, weight tracking, session flow, feedback system)
 
 ## 🗄 Database
 
