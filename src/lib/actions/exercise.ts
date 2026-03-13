@@ -7,6 +7,21 @@ import { writeFile, unlink } from "fs/promises";
 import path from "path";
 import { ExerciseCategory, ExerciseField } from "@prisma/client";
 
+const ALLOWED_VIDEO_EXTENSIONS = ["mp4", "webm", "mov", "avi"];
+
+function validateVideoFile(file: File) {
+  if (file.size > 50 * 1024 * 1024) {
+    throw new Error("Video muss kleiner als 50MB sein");
+  }
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  if (!ext || !ALLOWED_VIDEO_EXTENSIONS.includes(ext)) {
+    throw new Error(
+      `Nur Videodateien erlaubt (${ALLOWED_VIDEO_EXTENSIONS.join(", ")})`,
+    );
+  }
+  return ext;
+}
+
 // Helper: Check admin access
 async function requireAdmin() {
   const session = await auth();
@@ -41,14 +56,11 @@ export async function createExercise(formData: FormData) {
   // Handle video upload
   let videoPath = null;
   if (videoFile && videoFile.size > 0) {
-    if (videoFile.size > 50 * 1024 * 1024) {
-      throw new Error("Video muss kleiner als 50MB sein");
-    }
+    const ext = validateVideoFile(videoFile);
 
     const bytes = await videoFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const ext = videoFile.name.split(".").pop();
     const filename = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
     const filepath = path.join(
       process.cwd(),
@@ -103,9 +115,7 @@ export async function updateExercise(id: string, formData: FormData) {
   // Handle video upload
   let videoPath = existing.videoPath;
   if (videoFile && videoFile.size > 0) {
-    if (videoFile.size > 50 * 1024 * 1024) {
-      throw new Error("Video muss kleiner als 50MB sein");
-    }
+    const ext = validateVideoFile(videoFile);
 
     // Delete old video if exists
     if (existing.videoPath) {
@@ -117,7 +127,6 @@ export async function updateExercise(id: string, formData: FormData) {
     const bytes = await videoFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const ext = videoFile.name.split(".").pop();
     const filename = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
     const filepath = path.join(
       process.cwd(),

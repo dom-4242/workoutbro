@@ -3,22 +3,12 @@
 import { useState, useEffect } from "react";
 import { createExercise, updateExercise } from "@/lib/actions/exercise";
 import { Exercise, ExerciseCategory, ExerciseField } from "@prisma/client";
+import { categoryLabels } from "@/lib/exercise-categories";
 
 interface ExerciseFormProps {
   exercise?: Exercise; // If provided, we're editing
   onClose: () => void;
 }
-
-const categoryLabels: Record<ExerciseCategory, string> = {
-  CHEST: "Brust",
-  BACK: "Rücken",
-  SHOULDERS: "Schultern",
-  LEGS: "Beine",
-  ARMS: "Arme",
-  CORE: "Core",
-  CARDIO: "Cardio",
-  CUSTOM: "Eigene Kategorie",
-};
 
 const fieldOptions: { value: ExerciseField; label: string }[] = [
   { value: "WEIGHT", label: "Gewicht (kg)" },
@@ -58,10 +48,20 @@ export default function ExerciseForm({ exercise, onClose }: ExerciseFormProps) {
     );
   }
 
+  const ALLOWED_VIDEO_EXTENSIONS = ["mp4", "webm", "mov", "avi"];
+
   function handleVideoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) {
       setVideoPreview(null);
+      return;
+    }
+
+    // Check file extension
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !ALLOWED_VIDEO_EXTENSIONS.includes(ext)) {
+      setError(`Nur Videodateien erlaubt (${ALLOWED_VIDEO_EXTENSIONS.join(", ")})`);
+      e.target.value = "";
       return;
     }
 

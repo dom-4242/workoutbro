@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: "node", // Unit Tests brauchen kein Browser-Environment
     globals: true,
+    pool: "vmThreads", // Isolierte VM-Threads für bessere Test-Isolation
     setupFiles: ["./src/tests/setup.ts"],
     environmentMatchGlobs: [
       ["**/*.test.tsx", "jsdom"], // Komponenten-Tests: jsdom

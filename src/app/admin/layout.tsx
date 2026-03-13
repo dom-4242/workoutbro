@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import LogoutButton from "@/components/ui/LogoutButton";
+import AdminNav from "@/components/ui/AdminNav";
 
 export default async function AdminLayout({
   children,
@@ -34,22 +35,7 @@ export default async function AdminLayout({
       </header>
 
       {/* Admin Navigation */}
-      <nav className="border-b border-gray-800 px-4 md:px-6">
-        <div className="flex gap-1">
-          <Link
-            href="/admin/users"
-            className="px-4 py-3 text-sm text-gray-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-emerald-500"
-          >
-            Benutzerverwaltung
-          </Link>
-          <Link
-            href="/admin/exercises"
-            className="px-4 py-3 text-sm text-gray-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-emerald-500"
-          >
-            Übungsverwaltung
-          </Link>
-        </div>
-      </nav>
+      <AdminNav />
 
       {/* Content */}
       <main className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8">

@@ -4,23 +4,13 @@ import { useState } from "react";
 import { Exercise, ExerciseCategory, User } from "@prisma/client";
 import ExerciseCard from "@/components/ui/ExerciseCard";
 import ExerciseForm from "@/components/ui/ExerciseForm";
+import { categoryLabels } from "@/lib/exercise-categories";
 
 type ExerciseWithCreator = Exercise & { creator: User };
 
 interface ExercisesClientProps {
   exercises: ExerciseWithCreator[];
 }
-
-const categoryLabels: Record<ExerciseCategory, string> = {
-  CHEST: "Brust",
-  BACK: "Rücken",
-  SHOULDERS: "Schultern",
-  LEGS: "Beine",
-  ARMS: "Arme",
-  CORE: "Core",
-  CARDIO: "Cardio",
-  CUSTOM: "Eigene Kategorie",
-};
 
 export default function ExercisesClient({
   exercises,
