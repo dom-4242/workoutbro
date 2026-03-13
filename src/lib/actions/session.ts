@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { BodyRegion } from "@prisma/client";
+import { BodyRegion, Role } from "@prisma/client";
 import { pusherServer } from "@/lib/pusher";
 import { PUSHER_EVENTS, getSessionChannel } from "@/lib/pusher-events";
 
@@ -14,13 +14,23 @@ async function requireAuth() {
   return session;
 }
 
+// Helper: Require specific role
+async function requireRole(role: Role) {
+  const session = await requireAuth();
+  const roles = (session.user as any).roles as Role[] | undefined;
+  if (!roles?.includes(role)) {
+    throw new Error("Keine Berechtigung");
+  }
+  return session;
+}
+
 // ============================================
 // ATHLETE ACTIONS
 // ============================================
 
 // ATHLETE: Start new training session
 export async function startTrainingSession() {
-  const session = await requireAuth();
+  const session = await requireRole("ATHLETE");
   const userId = (session.user as any).id;
 
   // Check if user has trainer assigned
@@ -68,7 +78,7 @@ export async function completeRound(data: {
     athleteNotes?: string;
   }>;
 }) {
-  const session = await requireAuth();
+  const session = await requireRole("ATHLETE");
   const athleteId = (session.user as any).id;
 
   // Verify access
@@ -167,7 +177,7 @@ export async function completeRound(data: {
 
 // TRAINER: Join waiting session
 export async function joinTrainingSession(sessionId: string) {
-  const session = await requireAuth();
+  const session = await requireRole("TRAINER");
   const trainerId = (session.user as any).id;
 
   // Verify trainer access
@@ -218,7 +228,7 @@ export async function saveRound(data: {
     trainerNotes?: string;
   }>;
 }) {
-  const session = await requireAuth();
+  const session = await requireRole("TRAINER");
   const trainerId = (session.user as any).id;
 
   // Verify trainer access
@@ -292,7 +302,7 @@ export async function saveRound(data: {
 
 // TRAINER: Release round
 export async function releaseRound(roundId: string) {
-  const session = await requireAuth();
+  const session = await requireRole("TRAINER");
   const trainerId = (session.user as any).id;
 
   // Verify access
@@ -346,7 +356,7 @@ export async function releaseRound(roundId: string) {
 
 // TRAINER: Delete draft round
 export async function deleteRound(roundId: string) {
-  const session = await requireAuth();
+  const session = await requireRole("TRAINER");
   const trainerId = (session.user as any).id;
 
   // Verify access
@@ -433,7 +443,7 @@ export async function cancelSession(sessionId: string) {
 
 // Query: Get session for athlete
 export async function getAthleteSession(sessionId: string) {
-  const session = await requireAuth();
+  const session = await requireRole("ATHLETE");
   const athleteId = (session.user as any).id;
 
   return await prisma.trainingSession.findFirst({
@@ -461,7 +471,7 @@ export async function getAthleteSession(sessionId: string) {
 
 // Query: Get session for trainer
 export async function getTrainerSession(sessionId: string) {
-  const session = await requireAuth();
+  const session = await requireRole("TRAINER");
   const trainerId = (session.user as any).id;
 
   return await prisma.trainingSession.findFirst({
@@ -495,7 +505,7 @@ export async function getAvailableExercises() {
 
 // Query: Get active sessions for trainer
 export async function getTrainerActiveSessions() {
-  const session = await requireAuth();
+  const session = await requireRole("TRAINER");
   const trainerId = (session.user as any).id;
 
   const waiting = await prisma.trainingSession.findMany({
