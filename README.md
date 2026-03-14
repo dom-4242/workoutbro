@@ -59,30 +59,60 @@ A web application that enables real-time collaboration between athletes and trai
   - Bidirectional real-time sync (Trainer ↔ Athlete)
   - Optimized delays for production (800ms server + 300ms client)
   - Works in both development and production builds
-- [ ] **3d**: Enhanced trainer notes and history 🔄
+### 📋 Feature Backlog
 
-### Future Phases
+> Full backlog is tracked in [GitHub Projects](https://github.com/users/dom-4242/projects/1) · Each item = one GitHub Issue
 
-**Communication & Hardware:**
+**Priority legend:** 🔴 P1 Now · 🟠 P2 Soon · 🟡 P3 Mid-term · 🟢 P4 Long-term · ⚪ P5 Future Vision
 
-- [ ] Video/Audio chat during live sessions (WebRTC evaluation)
-- [ ] Live heart rate monitoring via Bluetooth chest strap
+**A – DevOps & Developer Experience**
 
-**Workout Management:**
+- 🔴 App versioning with SemVer (package.json + UI footer display)
+- 🟠 CI/CD pipeline (automated tests on push/PR)
+- 🟡 HomeLab production deployment (Docker, docker-compose.prod.yml)
+- ⚪ New HomeLab server hardware (hardware investment)
 
-- [ ] Round templates: Trainer can save round configurations and reuse them
-- [ ] Pain intensity scale: Add 1-10 slider for each selected body region
+**B – User Management & Profile**
 
-**User Management:**
+- 🔴 Change password function for users
+- 🔴 Language selection per user (stored preference in DB)
+- 🟡 Mobile number in user profile
+- 🟡 Self-service user registration
+- 🟡 OAuth integration (Google/Apple)
 
-- [ ] Self-service user registration
-- [ ] OAuth integration (Google/Apple)
+**C – Internationalization**
 
-**Analytics:**
+- 🔴 Complete DE/PT/EN translations for all existing UI elements
 
-- [ ] Advanced progress tracking and analytics
-- [ ] Exercise performance trends over time
-- [ ] Pain pattern analysis
+**D – Session & Training Features**
+
+- 🔴 Trainer can add notes to an active session
+- 🔴 Session history for trainer (past sessions, athlete feedback, notes overview)
+- 🟠 Per-athlete journal for trainer (general training notes, anytime)
+- 🟠 Session templates (trainer saves and reuses round configurations)
+- 🟠 Rest blocks between rounds/exercises (countdown timer for athlete, auto-start next)
+- 🟠 Session timeline tracking (round/exercise timing visible for trainer and athlete)
+- 🟠 Smarter variable values per exercise (reps/weight with intensity indicator based on past feedback)
+
+**E – UI / UX**
+
+- 🟡 Improved body model for pain region selection (more detailed SVG or 3D)
+
+**F – Communication**
+
+- 🟢 In-app text chat between trainer and athlete with built-in AI translation (DE ↔ PT)
+- 🟢 Live video and audio chat during training (WebRTC – primary goal: audio + trainer sees athlete)
+- 🟢 Shared training calendar for scheduling sessions
+- 🟢 WhatsApp notifications (training reminders, session start)
+
+**G – Hardware Integration**
+
+- 🟢 Live heart rate from Polar H10 (Web Bluetooth API, live display + HR timeline over rounds)
+- ⚪ Apple Watch trigger for manual round/exercise transitions
+
+**H – External Services**
+
+- 🟢 External exercise database via API (use external + custom exercises, video/GIF per exercise)
 
 ## 🛠 Tech Stack
 
@@ -364,19 +394,53 @@ This is a personal learning project. Feedback and suggestions are welcome via Is
 
 ## 📝 Development Workflow
 
-1. **Feature planning**: Define requirements and user stories (Product Owner role)
-2. **Specification**: Detailed briefing documents for AI-assisted implementation
-3. **Implementation**: Build features using Claude Code (AI pair programming)
-4. **Testing**: Manual testing + automated tests
-5. **Review**: UI/UX review and business logic validation
-6. **Commit**: Clear commit messages following conventional commits
+> Vibe Coding workflow with Claude Code (AI pair programming). Features are tracked as GitHub Issues in [GitHub Projects](https://github.com/users/dom-4242/projects/1).
 
-**AI-Assisted Development:**
+### Cycle: Plan → Do → Test → Commit
+
+**1. Plan**
+- Pick the next feature from the backlog (GitHub Issue)
+- Discuss the feature with Claude Code, clarify requirements
+- Claude Code enters Plan Mode, proposes a technical solution
+- Large features are split into sub-tasks / stories, each its own commit
+- A feature branch is created: `feature/<name>`
+
+**2. Do**
+- Claude Code implements the feature in a worktree
+- Unit tests and E2E tests are written alongside the implementation
+- Claude Code iterates until all tests are green
+- TypeScript build must pass: `npm run build`
+
+**3. Test**
+- Manual testing by the Product Owner on the running app
+- Feedback is given to Claude Code, further iterations until fully satisfying
+
+**4. Commit & Push**
+- README is updated (backlog status, tech notes if needed)
+- Commit with [Conventional Commits](https://www.conventionalcommits.org/) message
+- PR opened → merge into `main`
+- GitHub Issue is closed
+
+### Definition of Done
+
+A feature is **done** when all of the following are true:
+- [ ] `npm run test` — unit tests green
+- [ ] `npm run test:e2e` — E2E tests green
+- [ ] `npm run build` — TypeScript build clean
+- [ ] Manual test by PO passed
+- [ ] README updated
+- [ ] Commit with conventional commit message on `main`
+
+### New Feature Ideas
+
+New features and ideas are submitted as GitHub Issues and added to the backlog for prioritization.
+
+### AI-Assisted Development
 
 - Requirements and architecture defined with Claude (Anthropic)
-- Implementation executed with Claude Code
-- Product Owner review and iteration
-- Learning focus: understanding high-level architecture and business logic
+- Implementation executed with Claude Code (Plan Mode + worktrees)
+- Product Owner review and iteration every cycle
+- Learning focus: full-stack architecture and business logic
 
 ## 📄 License
 
