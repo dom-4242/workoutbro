@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { validateLocale } from "@/lib/locale";
 
@@ -55,11 +56,17 @@ export async function setLocale(formData: FormData): Promise<void> {
   const locale = formData.get("locale") as string;
   if (!validateLocale(locale)) throw new Error("Invalid locale");
 
-  // Save to DB — request.ts reads locale directly from DB for authenticated users,
-  // so no cookie propagation needed.
+  // Save to DB (source of truth) and set cookie (for next-intl request.ts)
   await prisma.user.update({
     where: { id: session.user.id },
     data: { locale },
+  });
+
+  const cookieStore = await cookies();
+  cookieStore.set("locale", locale, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
   });
 
   redirect("/dashboard/settings");
