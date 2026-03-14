@@ -23,6 +23,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isActive  Boolean  @default(true)
+  locale    String   @default("de")
 
   // Trainer-Athlet relation
   trainerId String?  // null = kein Trainer zugewiesen

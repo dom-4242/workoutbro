@@ -21,6 +21,11 @@
     "addWeight": "Gewicht erfassen",
     "todayWeight": "Heutiges Gewicht"
   },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "password": "Passwort ändern"
+  },
   "weight": {
     "title": "Gewichtsverlauf",
     "addEntry": "Eintrag hinzufügen",

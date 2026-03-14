@@ -21,6 +21,11 @@
     "addWeight": "Log weight",
     "todayWeight": "Today's weight"
   },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "password": "Change password"
+  },
   "weight": {
     "title": "Weight history",
     "addEntry": "Add entry",
