@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { validateLocale } from "@/lib/locale";
 
 // Validate changePassword business rules (pure logic, no DB/auth)
 function validateChangePassword(
@@ -49,5 +50,31 @@ describe("changePassword validation", () => {
 
   it("accepts new password of exactly 8 characters", () => {
     expect(validateChangePassword("old123456", "exactly8", "exactly8")).toBeNull();
+  });
+});
+
+describe("validateLocale", () => {
+  it("accepts 'de'", () => {
+    expect(validateLocale("de")).toBe(true);
+  });
+
+  it("accepts 'pt'", () => {
+    expect(validateLocale("pt")).toBe(true);
+  });
+
+  it("accepts 'en'", () => {
+    expect(validateLocale("en")).toBe(true);
+  });
+
+  it("rejects unsupported locale 'fr'", () => {
+    expect(validateLocale("fr")).toBe(false);
+  });
+
+  it("rejects empty string", () => {
+    expect(validateLocale("")).toBe(false);
+  });
+
+  it("rejects uppercase 'DE' (case-sensitive)", () => {
+    expect(validateLocale("DE")).toBe(false);
   });
 });

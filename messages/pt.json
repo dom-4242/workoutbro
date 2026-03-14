@@ -21,6 +21,11 @@
     "addWeight": "Registrar peso",
     "todayWeight": "Peso de hoje"
   },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma",
+    "password": "Alterar senha"
+  },
   "weight": {
     "title": "Histórico de peso",
     "addEntry": "Adicionar entrada",
