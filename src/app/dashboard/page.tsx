@@ -113,6 +113,13 @@ export default async function DashboardPage() {
             </Link>
           )}
 
+          <Link
+            href="/dashboard/settings"
+            className="text-sm text-gray-400 hover:text-white transition-colors min-h-[44px] px-2 flex items-center"
+          >
+            Einstellungen
+          </Link>
+
           <LogoutButton />
         </div>
       </header>
