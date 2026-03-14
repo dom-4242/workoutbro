@@ -49,6 +49,31 @@ test.describe("Authentication", () => {
     });
   });
 
+  test.describe("Root redirect", () => {
+    test("redirects to /login when not authenticated", async ({ page }) => {
+      await page.goto("/");
+      await expect(page).toHaveURL("/login");
+    });
+
+    test("redirects to /dashboard when authenticated", async ({ page }) => {
+      await loginAs(page, process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
+      await page.goto("/");
+      await expect(page).toHaveURL("/dashboard");
+    });
+  });
+
+  test.describe("App footer", () => {
+    test("shows app version on login page", async ({ page }) => {
+      await page.goto("/login");
+      await expect(page.getByText(/v\d+\.\d+\.\d+/)).toBeVisible();
+    });
+
+    test("shows app version on dashboard when authenticated", async ({ page }) => {
+      await loginAs(page, process.env.TEST_USER_EMAIL!, process.env.TEST_USER_PASSWORD!);
+      await expect(page.getByText(/v\d+\.\d+\.\d+/)).toBeVisible();
+    });
+  });
+
   test.describe("Weight tracking", () => {
     test("athlete can add weight entry", async ({ page }) => {
       // Login — use loginAs helper (30s timeout, handles cold server)
