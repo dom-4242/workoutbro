@@ -396,30 +396,32 @@ This is a personal learning project. Feedback and suggestions are welcome via Is
 
 > Vibe Coding workflow with Claude Code (AI pair programming). Features are tracked as GitHub Issues in [GitHub Projects](https://github.com/users/dom-4242/projects/1).
 
-### Cycle: Plan → Do → Test → Commit
+### Cycle: Plan → Do → Test → Close → Push
 
 **1. Plan**
 - Pick the next feature from the backlog (GitHub Issue)
 - Discuss the feature with Claude Code, clarify requirements
 - Claude Code enters Plan Mode, proposes a technical solution
 - Large features are split into sub-tasks / stories, each its own commit
-- A feature branch is created: `feature/<name>`
 
 **2. Do**
-- Claude Code implements the feature in a worktree
+- Claude Code implements the feature
 - Unit tests and E2E tests are written alongside the implementation
 - Claude Code iterates until all tests are green
 - TypeScript build must pass: `npm run build`
+- Claude Code commits locally (no push yet)
 
 **3. Test**
-- Manual testing by the Product Owner on the running app
+- Manual testing by the Product Owner on the running app (`npm run dev`)
 - Feedback is given to Claude Code, further iterations until fully satisfying
 
-**4. Commit & Push**
-- README is updated (backlog status, tech notes if needed)
-- Commit with [Conventional Commits](https://www.conventionalcommits.org/) message
-- PR opened → merge into `main`
-- GitHub Issue is closed
+**4. Approve**
+- Product Owner gives explicit approval in chat
+
+**5. Close & Push**
+- Claude Code closes the GitHub Issue and moves it to "Done" on the board
+- Claude Code pushes to `main`
+- README is updated if needed
 
 ### Definition of Done
 
